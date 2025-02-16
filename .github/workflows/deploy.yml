@@ -1,0 +1,44 @@
+name: Deploy API ERP
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        tools: composer, node, npm
+
+    - name: Install Dependencies
+      run: |
+        composer install --no-interaction --prefer-dist --optimize-autoloader
+        npm install
+        npm run production
+
+    - name: Sync Files to VPS
+      uses: burnett01/rsync-deployments@5.2
+      with:
+        switches: -avzr --delete --exclude ".env"
+        path: ./
+        remote_path: /var/www/api_erp
+        remote_host: 152.42.214.115
+        remote_user: root
+        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Check and Create .env if Not Exist
+      run: |
+        ssh your-vps-user@your-vps-ip 'if [ ! -f /var/www/api_erp/.env ]; then cp /var/www/api_erp/.env.example /var/www/api_erp/.env; fi'
+
+    - name: Run Artisan Commands on VPS
+      run: |
+        ssh root@152.42.214.115 "cd /var/www/api_erp && php artisan migrate --force && php artisan cache:clear && php artisan config:cache && php artisan view:cache"
