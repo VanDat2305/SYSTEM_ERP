@@ -22,6 +22,12 @@ jobs:
     - name: Install Dependencies
       run: |
         composer install --no-interaction --prefer-dist --optimize-autoloader
+
+    - name: Add SSH Key
+      run: |
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+
     - name: Sync Files to VPS
       uses: burnett01/rsync-deployments@5.2
       with:
@@ -30,12 +36,12 @@ jobs:
         remote_path: /var/www/api_erp
         remote_host: 152.42.214.115
         remote_user: root
-        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+        remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
 
     - name: Check and Create .env if Not Exist
       run: |
-        ssh root@152.42.214.115 'if [ ! -f /var/www/api_erp/.env ]; then cp /var/www/api_erp/.env.example /var/www/api_erp/.env; fi'
+        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@152.42.214.115 'if [ ! -f /var/www/api_erp/.env ]; then cp /var/www/api_erp/.env.example /var/www/api_erp/.env; fi'
 
     - name: Run Artisan Commands on VPS
       run: |
-        ssh root@152.42.214.115 "cd /var/www/api_erp && php artisan migrate --force && php artisan cache:clear && php artisan config:cache && php artisan view:cache"
+        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@152.42.214.115 "cd /var/www/api_erp && php artisan migrate --force && php artisan cache:clear && php artisan config:cache && php artisan view:cache"
