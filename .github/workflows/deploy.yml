@@ -48,6 +48,8 @@ jobs:
             echo ".env file already exists.";
           fi
           ls -l /var/www/api_erp/.env
+          \echo "Contents of .env:"
+          cat /var/www/api_erp/.env
         '
 
     - name: Run Artisan Commands on VPS
