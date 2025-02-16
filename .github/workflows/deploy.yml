@@ -34,7 +34,7 @@ jobs:
 
     - name: Check and Create .env if Not Exist
       run: |
-        ssh your-vps-user@your-vps-ip 'if [ ! -f /var/www/api_erp/.env ]; then cp /var/www/api_erp/.env.example /var/www/api_erp/.env; fi'
+        ssh root@152.42.214.115 'if [ ! -f /var/www/api_erp/.env ]; then cp /var/www/api_erp/.env.example /var/www/api_erp/.env; fi'
 
     - name: Run Artisan Commands on VPS
       run: |
