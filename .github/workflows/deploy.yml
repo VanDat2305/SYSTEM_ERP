@@ -44,5 +44,5 @@ jobs:
 
     - name: Run Artisan Commands on VPS
       run: |
-        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@152.42.214.115 "cd /var/www/api_erp && php artisan migrate --force && php artisan cache:clear && php artisan config:cache && php artisan view:cache"
+        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@152.42.214.115 "cd /var/www/api_erp && php artisan cache:clear && php artisan config:cache && php artisan view:cache"
 
