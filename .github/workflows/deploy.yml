@@ -31,6 +31,12 @@ jobs:
         remote_host: 152.42.214.115
         remote_user: root
         remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
+    - name: Add SSH Key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H 152.42.214.115 >> ~/.ssh/known_hosts
 
     - name: Check and Create .env if Not Exist
       run: |
@@ -39,3 +45,4 @@ jobs:
     - name: Run Artisan Commands on VPS
       run: |
         ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@152.42.214.115 "cd /var/www/api_erp && php artisan migrate --force && php artisan cache:clear && php artisan config:cache && php artisan view:cache"
+
