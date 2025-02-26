@@ -27,7 +27,7 @@ jobs:
       with:
         switches: -avzr --delete --exclude ".env"
         path: ./
-        remote_path: /var/www/api_erp
+        remote_path: /var/www/html/api_erp
         remote_host: 152.42.214.115
         remote_user: root
         remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -40,15 +40,15 @@ jobs:
     - name: Create .env from GitHub Secret
       run: |
         ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@152.42.214.115 '
-          echo "${{ secrets.ENV_CONTENT }}" > /var/www/api_erp/.env
-          chmod 644 /var/www/api_erp/.env
+          echo "${{ secrets.ENV_CONTENT }}" > /var/www/html/api_erp/.env
+          chmod 644 /var/www/html/api_erp/.env
           echo ".env file has been created from GitHub Secret.";
           echo "Contents of .env:";
-          cat /var/www/api_erp/.env
+          cat /var/www/html/api_erp/.env
         '
 
 
     - name: Run Artisan Commands on VPS
       run: |
-        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@152.42.214.115 "cd /var/www/api_erp && php artisan cache:clear && php artisan config:cache && php artisan view:cache"
+        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@152.42.214.115 "cd /var/www/html/api_erp && php artisan cache:clear && php artisan config:cache && php artisan view:cache  && php artisan route:clear"
 
