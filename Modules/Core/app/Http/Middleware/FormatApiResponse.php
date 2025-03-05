@@ -26,6 +26,10 @@ class FormatApiResponse
         if (isset($data['status'], $data['data'], $data['message'], $data['code'])) {
             return $response;
         }
+        // Nếu đã có errors (vd: lỗi validation), không cần format lại
+        if (isset($data['errors'])) {
+            return $response;
+        }
         // Nếu message nằm trong data, lấy nó và tránh lặp lại
         $message = $data['message'] ?? 'Success';
         unset($data['message']); // Xóa message trong data để tránh lặp lại
