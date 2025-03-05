@@ -22,6 +22,14 @@ jobs:
     - name: Install Dependencies
       run: |
         composer install --no-interaction --prefer-dist --optimize-autoloader
+
+    - name: Add SSH Key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H 152.42.214.115 >> ~/.ssh/known_hosts
+
     - name: Sync Files to VPS
       uses: burnett01/rsync-deployments@5.2
       with:
@@ -31,12 +39,7 @@ jobs:
         remote_host: 152.42.214.115
         remote_user: root
         remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
-    - name: Add SSH Key
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H 152.42.214.115 >> ~/.ssh/known_hosts
+
     - name: Create .env from GitHub Secret
       run: |
         ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@152.42.214.115 '
@@ -47,6 +50,13 @@ jobs:
           cat /var/www/html/api_erp/.env
         '
 
+    - name: Set Permissions for Laravel Storage
+      run: |
+        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@152.42.214.115 '
+          chown -R www-data:www-data /var/www/html/api_erp/storage /var/www/html/api_erp/bootstrap/cache
+          chmod -R 775 /var/www/html/api_erp/storage /var/www/html/api_erp/bootstrap/cache
+          echo "Permissions for storage and bootstrap/cache directories have been set."
+        '
 
     - name: Run Artisan Commands on VPS
       run: |
