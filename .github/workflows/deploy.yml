@@ -22,7 +22,9 @@ jobs:
     - name: Install Dependencies
       run: |
         composer install --no-interaction --prefer-dist --optimize-autoloader
-
+    - name: Dump Autoload
+      run: |
+        composer dump-autoload --optimize
     - name: Add SSH Key
       run: |
         mkdir -p ~/.ssh
