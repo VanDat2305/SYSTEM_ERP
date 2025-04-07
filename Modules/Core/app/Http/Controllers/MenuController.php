@@ -48,8 +48,9 @@ class MenuController extends Controller
             'ids.*' => 'required|uuid|exists:menus,id',
         ], [
             'ids.required' => __('validation.ids_required'),
+            'ids.array' => __('validation.array_required', ['attribute' => trans('core::menus.attributes.menu')]),
             'ids.*.uuid' => __('validation.invalid_uuid'),
-            'ids.*.exists' => __('validation.id_not_found'),
+            'ids.*.exists' => __('validation.not_found', ['attribute' => trans('core::menus.attributes.menu')]),
         ]);
     
         // Xóa tất cả các menu trong danh sách

@@ -65,4 +65,5 @@ return [
     'not_found' => 'Một hoặc nhiều :attribute không tồn tại.',
     'array_required' => 'Danh sách :attribute là bắt buộc.',
     'array_min' => 'Danh sách :attribute phải chứa ít nhất một phần tử.',
+    'exists_permissions' => 'Một hoặc nhiều quyền được chọn không hợp lệ.',
 ];

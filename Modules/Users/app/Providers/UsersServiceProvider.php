@@ -4,6 +4,10 @@ namespace Modules\Users\Providers;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Modules\Users\Interfaces\PermissionRepositoryInterface;
+use Modules\Users\Repositories\PermissionRepository;
+use Modules\Users\Interfaces\RoleRepositoryInterface;
+use Modules\Users\Repositories\RoleRepository;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -39,6 +43,10 @@ class UsersServiceProvider extends ServiceProvider
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
+        // Binding cho Role
+        $this->app->bind(RoleRepositoryInterface::class, RoleRepository::class);
+        // Binding cho Permission
+        $this->app->bind(PermissionRepositoryInterface::class, PermissionRepository::class);
     }
 
     /**

@@ -65,4 +65,5 @@ return [
     'not_found' => 'One or more :attribute do not exist.',
     'array_required' => 'The :attribute list is required.',
     'array_min' => 'The :attribute list must contain at least one item.',
+    'exists_permissions' => 'One or more selected permissions are invalid.',
 ];

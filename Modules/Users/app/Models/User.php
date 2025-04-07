@@ -7,12 +7,13 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Str;
+use Spatie\Permission\Traits\HasRoles;
 
 // use Modules\Users\Database\Factories\App/Models/UserFactory;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, Notifiable;
+    use HasApiTokens, Notifiable, HasRoles;
     
     
     protected $fillable = ['id', 'name', 'email', 'password', 'last_login_at', 'status']; // THÊM CÁC CỘT CẦN THIẾT
