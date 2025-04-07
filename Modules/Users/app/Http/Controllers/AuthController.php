@@ -26,7 +26,7 @@ class AuthController extends Controller
         $user = $this->authService->register($data);
 
         return response()->json([
-            'message' => 'User registered successfully',
+            'message' => __('messages.register.success'),
             'user' => $user
         ], 201);
     }
@@ -41,7 +41,7 @@ class AuthController extends Controller
         $authData = $this->authService->login($credentials);
 
         return response()->json([
-            'message' => 'Login successful',
+            'message' => __('messages.login.success'),
             'token' => $authData['token'],
             'user' => $authData['user']
         ]);

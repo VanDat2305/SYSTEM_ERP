@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Modules\Core\Helpers\ResponseHelper;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class FormatApiResponse
 {
@@ -14,31 +15,56 @@ class FormatApiResponse
     {
         $response = $next($request);
 
-        // Nếu response không phải là JSON, trả về nguyên trạng
         if (!$response instanceof JsonResponse) {
             return $response;
         }
 
-        // Lấy dữ liệu từ response
         $data = $response->getData(true);
 
-        // Kiểm tra nếu response đã đúng format, không cần format lại
-        if (isset($data['status'], $data['data'], $data['message'], $data['code'])) {
+        // Nếu đã đúng format hoặc có errors, trả về nguyên trạng
+        if (isset($data['status'], $data['message'], $data['code']) || isset($data['errors'])) {
             return $response;
         }
-        // Nếu đã có errors (vd: lỗi validation), không cần format lại
-        if (isset($data['errors'])) {
-            return $response;
-        }
-        // Nếu message nằm trong data, lấy nó và tránh lặp lại
-        $message = $data['message'] ?? 'Success';
-        unset($data['message']); // Xóa message trong data để tránh lặp lại
 
-        // Format lại response theo chuẩn chung
+        // Xử lý dữ liệu phân trang
+        if ($response->original instanceof LengthAwarePaginator) {
+            return $this->formatPaginatedResponse($response);
+        }
+
+        // Xử lý response thông thường với message đa ngôn ngữ
         return ResponseHelper::success(
-            data: $data['data'] ?? $data, // Nếu có key `data` thì dùng, không thì lấy toàn bộ response
-            message: $message, // Nếu không có message, mặc định là "Success"
-            code: $response->status() // Giữ nguyên HTTP status code
+            data: $data['data'] ?? $data,
+            message: $data['message'] ?? __('messages.success'),
+            code: $response->status()
+        );
+    }
+
+    private function formatPaginatedResponse(JsonResponse $response): JsonResponse
+    {
+        $paginator = $response->original;
+
+        // Tích hợp meta vào data
+        $formattedData = [
+            'items' => $paginator->items(),
+            'pagination' => [
+                'current_page' => $paginator->currentPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+                'last_page' => $paginator->lastPage(),
+                // 'first_page_url' => $paginator->url(1),
+                // 'last_page_url' => $paginator->url($paginator->lastPage()),
+                // 'next_page_url' => $paginator->nextPageUrl(),
+                // 'prev_page_url' => $paginator->previousPageUrl(),
+                // 'path' => $paginator->path(),
+                // 'from' => $paginator->firstItem(),
+                // 'to' => $paginator->lastItem(),
+            ]
+        ];
+
+        return ResponseHelper::success(
+            data: $formattedData,
+            message: __('messages.success'),
+            code: $response->status()
         );
     }
 }

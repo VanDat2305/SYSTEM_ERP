@@ -4,6 +4,8 @@ namespace Modules\Core\Providers;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Modules\Core\Repositories\MenuRepository;
+use Modules\Core\Interfaces\MenuRepositoryInterface;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -35,7 +37,8 @@ class CoreServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->register(EventServiceProvider::class);
-        // $this->app->register(RouteServiceProvider::class);
+        $this->app->bind(MenuRepositoryInterface::class, MenuRepository::class);
+        $this->app->register(RouteServiceProvider::class);
     }
 
     /**

@@ -27,10 +27,9 @@ class AuthService
     public function login(array $credentials)
     {
         $user = $this->userRepository->findByEmail($credentials['email']);
-
         if (!$user || !Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.']
+                'email' => [__('messages.login.credentials_incorrect')],
             ]);
         }
         $user->update(['last_login_at' => Carbon::now()]);
