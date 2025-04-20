@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CustomSanctumAuth;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -13,7 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(\Modules\Core\Http\Middleware\FormatApiResponse::class);
-        $middleware->append(SetLocale::class);
+        $middleware->append(SetLocale::class);        
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Custom cho AccessDeniedHttpException
@@ -45,5 +46,13 @@ return Application::configure(basePath: dirname(__DIR__))
                     'message' => __('messages.exceptions.data_not_found'),
                     'code' => 404,
                 ], 404)
+        );
+        $exceptions->renderable(
+            fn(App\Exceptions\CustomException $e, Illuminate\Http\Request $request) =>
+                response()->json([
+                    'status' => false,
+                    'message' => $e->getMessage(),
+                    'code' => $e->getStatusCode(),
+                ], $e->getStatusCode())
         );
     })->create();

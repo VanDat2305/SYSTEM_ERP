@@ -7,6 +7,13 @@ return [
     "roles" => [
         'name' => 'Role Name',
         'name_only' => 'Role',
-    ]
+    ],
+    "users" => [
+        'user' => 'User',
+        'name' => 'name',
+        'email' => 'email',
+        'password' => 'password',
+        'status' => 'status',
+    ],
 
 ];

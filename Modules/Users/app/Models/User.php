@@ -15,6 +15,7 @@ class User extends Authenticatable
 {
     use HasApiTokens, Notifiable, HasRoles;
     
+    protected $guard_name = 'api';
     
     protected $fillable = ['id', 'name', 'email', 'password', 'last_login_at', 'status']; // THÊM CÁC CỘT CẦN THIẾT
 

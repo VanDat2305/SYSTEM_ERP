@@ -4,7 +4,10 @@ namespace Modules\Users\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Modules\Users\Enums\UserStatus;
+use Modules\Users\Http\Requests\CreateUserRequest;
+use Modules\Users\Http\Requests\UpdateUserRequest;
 use Modules\Users\Services\UserService;
 
 class UserController extends Controller
@@ -18,7 +21,9 @@ class UserController extends Controller
 
     public function index()
     {
-        return response()->json($this->userService->getAllUsers());
+        $users = $this->userService->getAllUsers();
+
+        return response()->json($users);
     }
 
     public function show($id)
@@ -26,31 +31,59 @@ class UserController extends Controller
         return response()->json($this->userService->getUserById($id));
     }
 
-    public function store(Request $request)
+    public function store(CreateUserRequest $request)
     {
-        $data = $request->validate([
-            'name' => 'required|string',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6',
-            'status' => UserStatus::PENDING,
-        ]);
+        try {
+            $user = $this->userService->createUser($request->validated());
 
-        return response()->json($this->userService->createUser($data));
+            return response()->json([
+                'status' => true,
+                'message' => __('messages.crud.created', ['model' => __('users::attr.users.user')]),
+                'data' => $user,
+            ], 201);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => __('validation.failed'),
+                'errors' => $e->errors(),
+            ], 422);
+        }
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateUserRequest $request, string $id)
     {
-        $data = $request->validate([
-            'name' => 'sometimes|string',
-            'email' => 'sometimes|email|unique:users,email,' . $id,
-            'password' => 'sometimes|min:6',
-        ]);
+        try {
+            $user = $this->userService->updateUser($id, $request->validated());
 
-        return response()->json($this->userService->updateUser($id, $data));
+            return response()->json([
+                'status' => true,
+                'message' => __('messages.crud.updated', ['model' => __('users::attr.users.user')]),
+                'data' => $user,
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => __('validation.failed'),
+                'errors' => $e->errors(),
+            ], 422);
+        }
     }
 
-    public function destroy($id)
+    public function destroy(string $id)
     {
-        return response()->json($this->userService->deleteUser($id));
+        try {
+            $this->userService->deleteUser($id);
+
+            return response()->json([
+                'status' => true,
+                'message' =>  __('messages.crud.delete', ['model' => __('users::attr.users.user')]),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => __('users.delete_failed'),
+                'errors' => [$e->getMessage()],
+            ], 500);
+        }
     }
 }

@@ -21,4 +21,23 @@ return [
     'deleted_one_success' => ':attribute đã được xóa thành công.', // Cho xóa một
     'deleted_many_success' => ':count :attribute đã được xóa thành công.', // Cho xóa
     'deleted_success' => '{1} :attribute đã được xóa thành công.|[2,*] :count :attribute đã được xóa thành công.',
+
+    'auth' => [
+        'unauthenticated' => 'Bạn chưa được xác thực.',
+    ],
+    'crud' => [
+        'created' => ':model đã được tạo thành công.',
+        'updated' => ':model đã được cập nhật.',
+        'deleted' => ':model đã được xóa.',
+        'not_found' => ':model không tồn tại.',
+        'action' => 'Hành động :action đã được thực hiện trên :model.',
+        'failure' => 'Thao tác :action trên :model thất bại. Vui lòng thử lại.',  // Thêm thông báo thất bại
+    ],
+    'action' => [
+        'created' => 'tạo mới',
+        'updated' => 'cập nhật',
+        'deleted' => 'xóa',
+        'retrieved' => 'truy xuất',
+        
+    ]
 ];

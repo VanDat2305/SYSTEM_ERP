@@ -18,7 +18,7 @@ use Modules\Core\Http\Controllers\MenuController;
 // Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
 //     Route::apiResource('core', CoreController::class)->names('core');
 // });
-Route::prefix('v1')->group(function () {
+Route::middleware([\App\Http\Middleware\CustomSanctumAuth::class])->prefix('v1')->group(function () {
     Route::get('menus', [MenuController::class, 'index']);  // Lấy danh sách menu
     Route::post('menus', [MenuController::class, 'store']); // Thêm menu mới
     Route::put('menus/{id}', [MenuController::class, 'update']); // Cập nhật menu

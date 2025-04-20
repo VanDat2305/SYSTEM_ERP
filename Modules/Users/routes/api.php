@@ -17,12 +17,17 @@ use Modules\Users\Http\Controllers\UserController;
  *
 */
 
-Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
-    Route::apiResource('users', UserController::class)->names('users');
-});
-Route::prefix('v1')->group(function () {
+// api_puplic
+Route::prefix('v1')->group(function(){
     Route::post('register', [AuthController::class, 'register']);
-    Route::post('login', [AuthController::class, 'login']);
+    Route::post('login', [AuthController::class, 'login']); 
+});
+
+
+//api authe
+Route::middleware(['auth:sanctum', \App\Http\Middleware\CustomSanctumAuth::class])->prefix('v1')->group(function () {
+    Route::apiResource('users', UserController::class)->names('users');
+    
 
     // Roles
     Route::resource('roles', RoleController::class)->only(['index', 'show', 'store', 'update']);

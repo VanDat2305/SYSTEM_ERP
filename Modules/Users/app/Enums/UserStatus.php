@@ -16,28 +16,14 @@ enum UserStatus: string
      */
     public static function getValues(): array
     {
-        return [
-            self::ACTIVE->value,
-            self::INACTIVE->value,
-            self::PENDING->value,
-            self::SUSPENDED->value,
-            self::BANNED->value,
-            self::DELETED->value,
-        ];
+        return array_map(fn(self $status) => $status->value, self::cases());
     }
 
     /**
-     * Lấy tên trạng thái
+     * Lấy tên trạng thái (đa ngôn ngữ)
      */
     public function getLabel(): string
     {
-        return match ($this) {
-            self::ACTIVE => 'Hoạt động',
-            self::INACTIVE => 'Không hoạt động',
-            self::PENDING => 'Chờ kích hoạt',
-            self::SUSPENDED => 'Bị tạm khóa',
-            self::BANNED => 'Bị cấm',
-            self::DELETED => 'Đã xóa',
-        };
+        return __("status.users.{$this->value}");
     }
 }
