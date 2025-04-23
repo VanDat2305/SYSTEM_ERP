@@ -5,6 +5,7 @@ namespace Modules\Users\Services;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Modules\Users\Repositories\UserRepository;
 use Illuminate\Validation\ValidationException;
 use Modules\Users\Models\User;
@@ -37,5 +38,16 @@ class AuthService
             'token' => $user->createToken('api-token')->plainTextToken,
             'user' => $user
         ];
+    }
+    public function logout(User $user)
+    {
+        try {
+            $user->currentAccessToken()->delete();
+        } catch (\Exception $e) {
+            // Log the error message
+            Log::error('Logout failed: ' . $e->getMessage());
+            throw new \Exception(__('messages.logout.failed'), 500);
+        }
+        
     }
 }

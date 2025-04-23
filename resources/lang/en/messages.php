@@ -37,5 +37,9 @@ return [
         'updated' => 'updated',
         'deleted' => 'deleted',
         'retrieved' => 'retrieved',
-    ]
+    ],
+    'logout' => [
+        'success' => 'Logout successful!',
+        'failed' => 'Logout failed. Please try again.',
+    ],
 ];

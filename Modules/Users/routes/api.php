@@ -27,6 +27,10 @@ Route::prefix('v1')->group(function(){
 //api authe
 Route::middleware(['auth:sanctum', \App\Http\Middleware\CustomSanctumAuth::class])->prefix('v1')->group(function () {
     Route::apiResource('users', UserController::class)->names('users');
+
+    // routes/api.php
+    Route::post('/logout', [AuthController::class, 'logout']);
+
     
 
     // Roles

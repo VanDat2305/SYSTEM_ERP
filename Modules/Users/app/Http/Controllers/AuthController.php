@@ -46,4 +46,17 @@ class AuthController extends Controller
             'user' => $authData['user']
         ]);
     }
+    public function logout(Request $request)
+    {
+        try {
+            $this->authService->logout($request->user());
+            return response()->json([
+                'message' => __('messages.logout.success')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => __('messages.logout.failed')
+            ], 500);
+        }
+    }
 }

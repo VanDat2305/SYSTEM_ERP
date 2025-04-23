@@ -39,5 +39,9 @@ return [
         'deleted' => 'xóa',
         'retrieved' => 'truy xuất',
         
-    ]
+    ],
+    'logout' => [
+        'success' => 'Đăng xuất thành công!',
+        'failed' => 'Đăng xuất thất bại. Vui lòng thử lại.',
+    ],
 ];
