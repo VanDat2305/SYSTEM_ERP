@@ -33,10 +33,19 @@ class AuthService
             ]);
         }
         $user->update(['last_login_at' => Carbon::now()]);
+        $roles = $user->roles->pluck('name');
+        
+        $permissions = $user->getAllPermissions()->pluck('name');
 
+        $menu = $this->buildMenu($user);
+        $token = $user->createToken('api-token')->plainTextToken;
+        $user = $this->transformUser($user);
         return [
-            'token' => $user->createToken('api-token')->plainTextToken,
-            'user' => $user
+            'token' => $token,
+            'user' => $user,
+            'menu' => $menu,
+            'roles' => $roles,
+            'permissions' => $permissions,
         ];
     }
     public function logout(User $user)
@@ -49,5 +58,71 @@ class AuthService
             throw new \Exception(__('messages.logout.failed'), 500);
         }
         
+    }
+    protected function buildMenu(User $user)
+    {
+        $menu = [
+            [
+                'title' => __('Dashboard'),
+                'icon' => 'mdi-view-dashboard',
+                'route' => 'dashboard',
+                'permission' => 'dashboard.view',
+            ],
+            [
+                'title' => __('System'),
+                'icon' => 'mdi-system-group',
+                'children' => [
+                    [
+                        'title' => __('Users'),
+                        'route' => 'system/users',
+                        'permission' => 'users.read',
+                    ],
+                    [
+                        'title' => __('Roles'),
+                        'route' => 'system/roles',
+                        'permission' => 'roles.read',
+                    ],
+                ],
+            ],
+        ];
+        return $this->filterMenu($menu, $user);
+    }
+
+    protected function filterMenu(array $menu, User $user)
+    {
+        return array_filter(array_map(function ($item) use ($user) {
+            // Nếu có children, đệ quy filter
+            if (isset($item['children'])) {
+                $filteredChildren = $this->filterMenu($item['children'], $user);
+                if (count($filteredChildren) > 0) {
+                    $item['children'] = $filteredChildren;
+                    return $item;
+                }
+                return null;
+            }
+
+            // Kiểm tra permission
+            if (isset($item['permission'])) {
+                if ($user->can($item['permission'])) {
+                    return $item;
+                }
+                return null;
+            }
+
+            // Nếu không có permission requirement, hiển thị
+            return $item;
+        }, $menu));
+    }
+    protected function transformUser($user): array
+    {
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'status' => $user->status->value,
+            'status_label' => $user->status->getLabel(),
+            'last_login_at' => $user->last_login_at,
+            'two_factor_enabled' => $user->two_factor_enabled     
+        ];
     }
 }

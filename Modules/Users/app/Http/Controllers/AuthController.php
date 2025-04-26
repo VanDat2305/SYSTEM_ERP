@@ -43,7 +43,10 @@ class AuthController extends Controller
         return response()->json([
             'message' => __('messages.login.success'),
             'token' => $authData['token'],
-            'user' => $authData['user']
+            'user' => $authData['user'],
+            'roles' => $authData['roles'],
+            'permissions' => $authData['permissions'],
+            'menu' => $authData['menu'],
         ]);
     }
     public function logout(Request $request)

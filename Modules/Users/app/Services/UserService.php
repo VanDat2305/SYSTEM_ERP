@@ -75,8 +75,12 @@ class UserService
     {
         try {
             return DB::transaction(function () use ($id, $data) {
+                $roles = $data['roles'] ?? null;
+                unset($data['roles']);
                 $user = $this->userRepository->update($id, $data);
-
+                if ($roles) {
+                    $user->syncRoles($roles);
+                }
                 return $this->transformUser($user);
             });
         } catch (\Throwable $e) {
