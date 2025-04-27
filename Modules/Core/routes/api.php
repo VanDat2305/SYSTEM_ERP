@@ -24,3 +24,10 @@ Route::middleware([\App\Http\Middleware\CustomSanctumAuth::class])->prefix('v1')
     Route::put('menus/{id}', [MenuController::class, 'update']); // Cập nhật menu
     Route::post('menus/delete', [MenuController::class, 'destroy']); // Xóa menu
 });
+
+use Laravel\Sanctum\Http\Controllers\CsrfCookieController;
+
+Route::prefix('v1')->group(function () {
+    Route::get('/sanctum/csrf-cookie', [CsrfCookieController::class, 'show'])
+        ->name('sanctum.csrf-cookie');
+});

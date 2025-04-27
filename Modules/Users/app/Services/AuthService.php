@@ -66,20 +66,25 @@ class AuthService
                 'title' => __('Dashboard'),
                 'icon' => 'mdi-view-dashboard',
                 'route' => 'dashboard',
+                'routeName' => 'dashboard',
                 'permission' => 'dashboard.view',
+
             ],
             [
                 'title' => __('System'),
                 'icon' => 'mdi-system-group',
+                'isDefault' => true,
                 'children' => [
                     [
                         'title' => __('Users'),
                         'route' => 'system/users',
+                        'routeName' => 'system.users',
                         'permission' => 'users.read',
                     ],
                     [
                         'title' => __('Roles'),
                         'route' => 'system/roles',
+                        'routeName' => 'system.roles',
                         'permission' => 'roles.read',
                     ],
                 ],
@@ -90,7 +95,7 @@ class AuthService
 
     protected function filterMenu(array $menu, User $user)
     {
-        return array_filter(array_map(function ($item) use ($user) {
+        return array_values(array_filter(array_map(function ($item) use ($user) {
             // Nếu có children, đệ quy filter
             if (isset($item['children'])) {
                 $filteredChildren = $this->filterMenu($item['children'], $user);
@@ -100,18 +105,14 @@ class AuthService
                 }
                 return null;
             }
-
+    
             // Kiểm tra permission
-            if (isset($item['permission'])) {
-                if ($user->can($item['permission'])) {
-                    return $item;
-                }
+            if (isset($item['permission']) && !$user->can($item['permission'])) {
                 return null;
             }
-
-            // Nếu không có permission requirement, hiển thị
+    
             return $item;
-        }, $menu));
+        }, $menu)));
     }
     protected function transformUser($user): array
     {
