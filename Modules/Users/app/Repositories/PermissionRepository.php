@@ -34,4 +34,8 @@ class PermissionRepository implements PermissionRepositoryInterface
         $permission = $this->find($id);
         return $permission->delete();
     }
+    public function getModel()
+    {
+        return new Permission();
+    }
 }

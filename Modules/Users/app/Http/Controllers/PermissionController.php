@@ -15,10 +15,10 @@ class PermissionController extends Controller
         $this->permissionService = $permissionService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $permissions = $this->permissionService->getAllPermissions();
+            $permissions = $this->permissionService->getAllPermissions($request);
             return response()->json([
                 'success' => true,
                 'message' => trans('users::messages.permissions.retrieved_success'),

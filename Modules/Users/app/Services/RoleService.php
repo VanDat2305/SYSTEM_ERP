@@ -76,7 +76,9 @@ class RoleService
             // Tạo role với guard_name là 'api'
             $role = $this->roleRepository->create([
                 'name' => $data['name'],
-                'guard_name' => 'api'
+                'guard_name' => 'api',
+                'description' => empty($data['description']) ? null : $data['description'],
+                'status' => empty($data['status']) ? 'active' : $data['status'],
             ]);
     
             // Gán permissions nếu có
@@ -99,7 +101,11 @@ class RoleService
     
         try {
             // Cập nhật thông tin role
-            $role = $this->roleRepository->update($id, ['name' => $data['name']]);
+            $role = $this->roleRepository->update($id, [
+                'name' => $data['name'],
+                'description' => empty($data['description']) ? null : $data['description'],
+                'status' => empty($data['status']) ? 'active' : $data['status'],
+            ]);
     
             // Đồng bộ permissions nếu có trong data
             if (array_key_exists('permissions', $data)) {

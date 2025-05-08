@@ -37,12 +37,17 @@ class RoleController extends Controller
         $validated = $request->validate([
             'name' => 'required|unique:roles,name',
             'permissions' => 'nullable|array',
-            'permissions.*' => 'exists:permissions,name'
+            'description' => 'nullable|string|max:255',
+            'permissions.*' => 'exists:permissions,name',
+            'status' => 'in:active,inactive'
         ],  [
             'name.required' =>  __('validation.required', ['attribute' => trans('users::attr.roles.name')]),
             'name.unique' => __('validation.unique', ['attribute' => trans('users::attr.roles.name')]),
             'permissions.array' => __('validation.array_required', ['attribute' => trans('users::attr.permissions.name_only')]),
             'permissions.*.exists' => __('validation.exists_permissions'),
+            'description.string' => __('validation.string', ['attribute' => trans('users::attr.roles.description')]),
+            'description.max' => __('validation.max.string', ['attribute' => trans('users::attr.roles.description'), 'max' => 255]),
+            'status.in' => __('validation.in', ['attribute' => trans('users::attr.roles.status')]),
         ]);
         try {
             $role = $this->roleService->createRoleWithPermissions($validated);
@@ -64,8 +69,19 @@ class RoleController extends Controller
         $validated = $request->validate([
             'name' => 'required|unique:roles,name,' . $id,
             'permissions' => 'nullable|array',
-            'permissions.*' => 'exists:permissions,name'
-        ]);
+            'permissions.*' => 'exists:permissions,name',
+            'description' => 'nullable|string|max:255',
+            'status' => 'in:active,inactive'
+        ],  [
+            'name.required' =>  __('validation.required', ['attribute' => trans('users::attr.roles.name')]),
+            'name.unique' => __('validation.unique', ['attribute' => trans('users::attr.roles.name')]),
+            'permissions.array' => __('validation.array_required', ['attribute' => trans('users::attr.permissions.name_only')]),
+            'permissions.*.exists' => __('validation.exists_permissions'),
+            'description.string' => __('validation.string', ['attribute' => trans('users::attr.roles.description')]),
+            'description.max' => __('validation.max.string', ['attribute' => trans('users::attr.roles.description'), 'max' => 255]),
+            'status.in' => __('validation.in', ['attribute' => trans('users::attr.roles.status')]),
+        ]
+        );
 
         try {
             $role = $this->roleService->updateRoleWithPermissions($id, $validated);

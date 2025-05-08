@@ -33,9 +33,9 @@ class AuthService
             ]);
         }
         $user->update(['last_login_at' => Carbon::now()]);
-        $roles = $user->roles->pluck('name');
+        $roles = $user->roles->where('status', 'active')->pluck('name');
         
-        $permissions = $user->getAllPermissions()->pluck('name');
+        $permissions = $user->getAllPermissions()->where('status', 'active')->pluck('name');
 
         $menu = $this->buildMenu($user);
         $token = $user->createToken('api-token')->plainTextToken;
