@@ -52,12 +52,16 @@ class UserService
         try {
             return DB::transaction(function () use ($data) {
                 $roles = $data['roles'] ?? null;
+                $permissions = $data['permissions'] ?? null;
                 unset($data['roles']);
+                unset($data['permissions']);
 
                 $user = $this->userRepository->create($data);
-
                 if ($roles) {
-                    $user->roles()->sync($roles);
+                    $user->assignRole($roles);
+                }
+                if ($permissions) {
+                    $user->givePermissionTo($permissions);
                 }
 
                 return $this->transformUser($user);
@@ -76,10 +80,17 @@ class UserService
         try {
             return DB::transaction(function () use ($id, $data) {
                 $roles = $data['roles'] ?? null;
+                $permissions = $data['permissions'] ?? null;
                 unset($data['roles']);
+                unset($data['permissions']);
                 $user = $this->userRepository->update($id, $data);
+                $user->syncRoles([]);
                 if ($roles) {
                     $user->syncRoles($roles);
+                }
+                $user->syncPermissions([]);
+                if ($permissions) {
+                    $user->syncPermissions($permissions);
                 }
                 return $this->transformUser($user);
             });
@@ -125,6 +136,7 @@ class UserService
                 'permissions' => $role->permissions->pluck('name'),
             ]),
             'permissions' => $user->getAllPermissions()->pluck('name'),
+            'created_at' => $user->created_at,
         ];
     }
 }

@@ -69,15 +69,34 @@ class UserController extends Controller
         }
     }
 
-    public function destroy(string $id)
+    public function destroy(Request $request)
     {
         try {
-            $this->userService->deleteUser($id);
-
-            return response()->json([
-                'status' => true,
-                'message' =>  __('messages.crud.delete', ['model' => __('users::attr.users.user')]),
+            // Validate danh sách các IDs cần xóa
+            $validated = $request->validate([
+                'ids' => 'required|array|min:1',
+                'ids.*' => 'required|exists:users,id',
+            ], [
+                'ids.required' => __('validation.required'),
+                'ids.array' => __('validation.array_required', ['attribute' => trans('users::attr.users.name')]),
+                'ids.*.exists' => __('validation.not_found', ['attribute' => trans('users::attr.users.name')]),
             ]);
+            // Xóa tất cả các menu trong danh sách
+            foreach ($validated['ids'] as $id) {
+                $this->userService->deleteUser($id);
+            }
+
+            $message = count($validated['ids']) === 1 
+                ? __('messages.deleted_one_success', ['attribute' => trans('users::attr.users.name_only')]) 
+                : __('messages.deleted_many_success', [
+                    'attribute' => trans('users::attr.users.name_only'),
+                    'count' => count($validated['ids'])
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => $message
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,

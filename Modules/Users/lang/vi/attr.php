@@ -18,6 +18,7 @@ return [
         'email' => 'Email',
         'password' => 'Mật khẩu',
         'status' => 'Trạng thái',
+        'name_only' => 'Người dùng',
     ],
 
 ];

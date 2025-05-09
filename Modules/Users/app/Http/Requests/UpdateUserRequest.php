@@ -18,6 +18,7 @@ class UpdateUserRequest extends FormRequest
             'password' => 'nullable|string|min:8|confirmed',
             'status' => 'sometimes|in:active,inactive,pending,suspended,banned,deleted',
             'roles' => 'array',
+            'permissions' => 'array',
         ];
     }
 
@@ -43,6 +44,7 @@ class UpdateUserRequest extends FormRequest
             'password.confirmed' => trans('validation.confirmed', ['attribute' => trans('users::attr.users.password')]),
             'status.in' => trans('validation.in', ['attribute' => trans('users::attr.users.status')]),
             'roles.array' => trans('validation.array', ['attribute' => trans('users::attr.roles.name')]),
+            'permissions.array' => trans('validation.array', ['attribute' => trans('users::attr.permissions.name')]),
         ];
     }
 }

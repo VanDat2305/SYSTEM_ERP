@@ -17,6 +17,7 @@ class CreateUserRequest extends FormRequest
             'password' => 'required|string|min:8|confirmed',
             'status' => 'in:active,inactive,pending,suspended,banned,deleted',
             'roles' => 'array',
+            'permissions' => 'array',
         ];
     }
 
@@ -42,6 +43,7 @@ class CreateUserRequest extends FormRequest
             'password.confirmed' => trans('validation.confirmed', ['attribute' => trans('users::attr.users.password')]),
             'status.in' => trans('validation.in', ['attribute' => trans('users::attr.users.status')]),
             'roles.array' => trans('validation.array', ['attribute' => trans('users::attr.roles.name')]),
+            'permission.array' => trans('validation.array', ['attribute' => trans('users::attr.permission.name')]),
         ];
     }
 }

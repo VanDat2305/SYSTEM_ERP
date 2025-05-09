@@ -25,7 +25,9 @@ class User extends Authenticatable
         'status' => UserStatus::class, // Tự động cast trạng thái sang Enum
         'id' => 'string', // Đảm bảo Laravel đọc UUID đúng cách
     ];
-    
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     public static function boot()
     {
         parent::boot();

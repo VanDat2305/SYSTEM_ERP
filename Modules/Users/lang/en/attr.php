@@ -18,6 +18,7 @@ return [
         'email' => 'email',
         'password' => 'password',
         'status' => 'status',
+        'name_only' => 'User',
     ],
 
 ];
