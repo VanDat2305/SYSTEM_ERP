@@ -35,10 +35,16 @@ class PermissionController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name' => 'required|unique:permissions'
+            'name' => 'required|unique:permissions',
+            'description' => 'nullable|string|max:255',
+            'status' => 'in:active,inactive',
         ], [
             'name.required' =>  __('validation.required', ['attribute' => trans('users::attr.permissions.name')]),
             'name.unique' => __('validation.unique', ['attribute' => trans('users::attr.permissions.name')]),
+            'description.nullable' => __('validation.nullable', ['attribute' => trans('users::attr.permissions.description')]),
+            'description.string' => __('validation.string', ['attribute' => trans('users::attr.permissions.description')]),
+            'description.max' => __('validation.max', ['attribute' => trans('users::attr.permissions.description')]),
+            'status.in' => __('validation.in', ['attribute' => trans('users::attr.permissions.status')]),
         ]);
         $data['guard_name'] = 'api';
         try {
@@ -74,10 +80,16 @@ class PermissionController extends Controller
     public function update(Request $request, $id)
     {
         $data = $request->validate([
-            'name' => 'required|unique:permissions,name,' . $id
+            'name' => 'required|unique:permissions,name,' . $id,
+            'description' => 'nullable|string|max:255',
+            'status' => 'in:active,inactive',
         ], [
             'name.required' =>  __('validation.required', ['attribute' => trans('users::attr.permissions.name')]),
             'name.unique' => __('validation.unique', ['attribute' => trans('users::attr.permissions.name')]),
+            'description.nullable' => __('validation.nullable', ['attribute' => trans('users::attr.permissions.description')]),
+            'description.string' => __('validation.string', ['attribute' => trans('users::attr.permissions.description')]),
+            'description.max' => __('validation.max', ['attribute' => trans('users::attr.permissions.description')]),
+            'status.in' => __('validation.in', ['attribute' => trans('users::attr.permissions.status')]),
         ]);
 
         try {
