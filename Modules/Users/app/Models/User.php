@@ -8,7 +8,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles;
-
+use Modules\Users\Notifications\ResetPasswordNotification;
 // use Modules\Users\Database\Factories\App/Models/UserFactory;
 
 class User extends Authenticatable
@@ -35,5 +35,10 @@ class User extends Authenticatable
             $model->id = (string) Str::uuid();
         });
     }
-    
+
+
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new ResetPasswordNotification($token));
+    }
 }

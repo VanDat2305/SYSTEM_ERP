@@ -5,6 +5,8 @@ use Modules\Users\Http\Controllers\AuthController;
 use Modules\Users\Http\Controllers\PermissionController;
 use Modules\Users\Http\Controllers\RoleController;
 use Modules\Users\Http\Controllers\UserController;
+use Modules\Users\Http\Controllers\PasswordResetController;
+
 
 /*
  *--------------------------------------------------------------------------
@@ -21,6 +23,10 @@ use Modules\Users\Http\Controllers\UserController;
 Route::prefix('v1')->group(function(){
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']); 
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink']);
+    Route::get('/reset-password/{token}', [PasswordResetController::class, 'verifyToken'])->name('password.reset');
+    Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
+
 });
 
 
