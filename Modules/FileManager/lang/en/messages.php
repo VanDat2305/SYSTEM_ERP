@@ -1,0 +1,38 @@
+<?php
+return [
+    'file' => [
+        'uploaded_success' => 'File uploaded successfully',
+        'deleted_success' => 'File deleted successfully',
+        'failed_to_upload' => 'Failed to upload file: :error',
+        'failed_to_delete' => 'Failed to delete file: :error',
+        'failed_to_find' => 'File with ID :id not found',
+        'retrieved_success' => 'Files retrieved successfully',
+        'failed_to_retrieve' => 'Failed to retrieve files: :error',
+        'no_files_found' => 'No files found',
+        'file_required' => 'File is required',
+        'file_invalid' => 'Invalid file type',
+        'file_too_large' => 'File size exceeds the limit',
+        'file_not_found' => 'File not found',
+        'file_upload_failed' => 'File upload failed',
+        'file_delete_failed' => 'File deletion failed',
+        'file_path_invalid' => 'File path is invalid',
+        'file_path_exists' => 'File path already exists'
+    ],
+    'folder' => [
+        'created_success' => 'Folder created successfully',
+        'deleted_success' => 'Folder deleted successfully',
+        'updated_success' => 'Folder updated successfully',
+        'failed_to_create' => 'Failed to create folder: :error',
+        'failed_to_delete' => 'Failed to delete folder: :error',
+        'failed_to_update' => 'Failed to update folder: :error',
+        'failed_to_find' => 'Folder with ID :id not found',
+        'no_folders_found' => 'No folders found',
+        'name_required' => 'Folder name is required',
+        'name_unique' => 'Folder name must be unique',      
+        'name_invalid' => 'Folder name contains invalid characters',
+        'path_invalid' => 'Folder path is invalid',
+        'path_exists' => 'Folder path already exists',
+        'path_not_found' => 'Folder path not found',
+        'description_string' => 'Folder description must be a string',
+    ],
+];

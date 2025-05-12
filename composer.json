@@ -11,6 +11,7 @@
         "laravel/framework": "^11.31",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
+        "league/flysystem-aws-s3-v3": "3.0",
         "nwidart/laravel-modules": "^11.1",
         "pragmarx/google2fa-laravel": "^2.3",
         "spatie/laravel-permission": "^6.16"

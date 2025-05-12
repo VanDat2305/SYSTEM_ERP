@@ -1,4 +1,5 @@
 {
     "Users": true,
-    "Core": true
+    "Core": true,
+    "FileManager": true
 }
