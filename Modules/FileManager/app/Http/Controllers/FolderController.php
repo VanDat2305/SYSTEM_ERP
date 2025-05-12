@@ -34,7 +34,7 @@ class FolderController extends Controller
         
         return response()->json([
             'data' => $folder,
-            'message' => __("filemanager::messages.created_success")
+            'message' => __("filemanager::messages.folder.created_success")
         ], 201);
     }
 
@@ -43,7 +43,7 @@ class FolderController extends Controller
         $this->folderService->delete($id);
         
         return response()->json([
-            'message' => __("filemanager::messages.deleted_success")
+            'message' => __("filemanager::messages.folder.deleted_success")
         ]);
     }
 }

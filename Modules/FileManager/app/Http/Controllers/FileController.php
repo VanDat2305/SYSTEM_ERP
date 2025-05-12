@@ -96,7 +96,7 @@ class FileController extends Controller
         $file = $this->fileService->find($id);
 
         if (!$file || !Storage::disk('spaces')->exists($file->path)) {
-            return response()->json(['error' => __("filemanager::messages.no_files_found")], 404);
+            return response()->json(['error' => __("filemanager::messages.file.no_files_found")], 404);
         }
 
         $stream = Storage::disk('spaces')->readStream($file->path);
