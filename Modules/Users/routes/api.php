@@ -2,11 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Users\Http\Controllers\AuthController;
+use Modules\Users\Http\Controllers\OtpChallengeController;
 use Modules\Users\Http\Controllers\PermissionController;
 use Modules\Users\Http\Controllers\RoleController;
 use Modules\Users\Http\Controllers\UserController;
 use Modules\Users\Http\Controllers\PasswordResetController;
-
+use Modules\Users\Http\Controllers\TwoFactorAuthController;
 
 /*
  *--------------------------------------------------------------------------
@@ -26,7 +27,7 @@ Route::prefix('v1')->group(function(){
     Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink']);
     Route::get('/reset-password/{token}', [PasswordResetController::class, 'verifyToken'])->name('password.reset');
     Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
-
+    Route::post('/two-factor-challenge', [OtpChallengeController::class, 'store']);
 });
 
 
@@ -37,8 +38,13 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\CustomSanctumAuth::class
     // routes/api.php
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    
+    Route::post('/two-factor-authentication', [TwoFactorAuthController::class, 'store']);
+    Route::post('/confirmed-two-factor-authentication', [TwoFactorAuthController::class, 'confirm']);
+    Route::delete('/two-factor-authentication', [TwoFactorAuthController::class, 'destroy']);
+    Route::get('/two-factor-qr-code', [TwoFactorAuthController::class, 'showQrCode']);
+    Route::get('/two-factor-recovery-codes', [TwoFactorAuthController::class, 'showRecoveryCodes']);
 
+    
     // Roles
     Route::resource('roles', RoleController::class)->only(['index', 'show', 'store', 'update']);
     Route::post('roles/{id}/permissions', [RoleController::class, 'assignPermissions'])->name('roles.assignPermissions');

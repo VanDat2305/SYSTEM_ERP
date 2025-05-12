@@ -38,7 +38,11 @@ class AuthService
         $permissions = $user->getAllPermissions()->where('status', 'active')->pluck('name');
 
         $menu = $this->buildMenu($user);
-        $token = $user->createToken('api-token')->plainTextToken;
+        if ($user->two_factor_enabled) {
+            $token = $user->createToken('pre_2fa_token', ['2fa:verify'])->plainTextToken;
+        } else {
+            $token = $user->createToken('api-token', ['access:full'])->plainTextToken;
+        }
         $user = $this->transformUser($user);
         return [
             'token' => $token,

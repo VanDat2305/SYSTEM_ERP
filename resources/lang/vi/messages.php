@@ -24,6 +24,8 @@ return [
 
     'auth' => [
         'unauthenticated' => 'Bạn chưa được xác thực.',
+        'invalid_token' => 'Token không hợp lệ.',
+        'two_factor_token_restricted' => 'Token xác thực hai yếu tố không được phép truy cập vào tài nguyên này.',
     ],
     'crud' => [
         'created' => ':model đã được tạo thành công.',

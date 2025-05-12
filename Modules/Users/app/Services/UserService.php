@@ -130,6 +130,7 @@ class UserService
             'email' => $user->email,
             'status' => $user->status->value,
             'status_label' => $user->status->getLabel(),
+            'two_factor_enabled' => $user->two_factor_enabled,
             'roles' => $user->roles->map(fn($role) => [
                 'id' => $role->id,
                 'name' => $role->name,

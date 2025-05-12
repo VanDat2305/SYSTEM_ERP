@@ -22,6 +22,8 @@ return [
     'deleted_success' => '{1} :attribute deleted successfully.|[2,*] :count :attribute deleted successfully.',
     'auth' => [
         'unauthenticated' => 'You are not authenticated.',
+        'invalid_token' => 'Invalid token.',
+        'two_factor_token_restricted' => 'Two-factor authentication token is not allowed to access this resource.',
     ],
 
     'crud' => [

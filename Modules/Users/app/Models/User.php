@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles;
 use Modules\Users\Notifications\ResetPasswordNotification;
 // use Modules\Users\Database\Factories\App/Models/UserFactory;
+use Modules\Users\Models\UserTwoFactorCode;
 
 class User extends Authenticatable
 {
@@ -17,7 +18,7 @@ class User extends Authenticatable
     
     protected $guard_name = 'api';
     
-    protected $fillable = ['id', 'name', 'email', 'password', 'last_login_at', 'status']; // THÊM CÁC CỘT CẦN THIẾT
+    protected $fillable = ['id', 'name', 'email', 'password', 'last_login_at', 'status','two_factor_enabled']; // THÊM CÁC CỘT CẦN THIẾT
 
     protected $hidden = ['password']; // Ẩn password khi trả về JSON
 
@@ -40,5 +41,10 @@ class User extends Authenticatable
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new ResetPasswordNotification($token));
+    }
+
+    public function twoFactorCodes()
+    {
+        return $this->hasMany(UserTwoFactorCode::class);
     }
 }
