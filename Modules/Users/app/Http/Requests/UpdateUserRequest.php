@@ -19,6 +19,7 @@ class UpdateUserRequest extends FormRequest
             'status' => 'sometimes|in:active,inactive,pending,suspended,banned,deleted',
             'roles' => 'array',
             'permissions' => 'array',
+            'two_factor_enabled' => 'sometimes|boolean',
         ];
     }
 
