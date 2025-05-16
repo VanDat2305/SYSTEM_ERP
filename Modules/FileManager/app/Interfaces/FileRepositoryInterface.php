@@ -12,4 +12,5 @@ interface FileRepositoryInterface
     public function delete(string $id): bool;
     public function getByFolderId(?string $folderId = null): Collection;
     public function getRecentFiles(int $limit = 5): Collection;
+    public function uploadMultiple(array $files, ?string $folderId = null): array;
 }

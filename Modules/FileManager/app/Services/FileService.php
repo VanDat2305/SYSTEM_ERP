@@ -52,6 +52,57 @@ class FileService
             throw new Exception("Failed to upload file: " . $e->getMessage());
         }
     }
+    /**
+     * Upload multiple files.
+     *
+     * @param UploadedFile[] $files
+     * @param string|null $folderId
+     * @return File[]
+     * @throws Exception
+     */
+    public function uploadMultiple(array $files, ?string $folderId = null): array
+    {
+        $uploadedFiles = [];
+
+        foreach ($files as $file) {
+            if (!$file instanceof UploadedFile) {
+                continue; // Bỏ qua nếu không phải là một instance hợp lệ
+            }
+
+            try {
+                $folder = $folderId ? app(FolderRepositoryInterface::class)->find($folderId) : null;
+                $path = $folder ? $folder->path : 'uploads';
+                $fileName = $this->generateFileName($file);
+                $fullPath = $path . '/' . $fileName;
+                
+                Log::info("Uploading file '{$file->getClientOriginalName()}' to path '{$fullPath}'");
+
+                Storage::disk('spaces')->putFileAs($path, $file, $fileName);
+
+                $uploadedFiles[] = $this->fileRepository->create([
+                    'id' => Str::uuid(),
+                    'name' => $fileName,
+                    'original_name' => $file->getClientOriginalName(),
+                    'path' => $fullPath,
+                    'url' => Storage::disk('spaces')->url($fullPath),
+                    'mime_type' => $file->getMimeType(),
+                    'size' => $file->getSize(),
+                    'folder_id' => $folderId,
+                    'category' => $this->detectCategory($file),
+                    'user_id' => auth()->id()
+                ]);
+            } catch (Exception $e) {
+                Log::error("File upload failed for file '{$file->getClientOriginalName()}': " . $e->getMessage());
+                // Optional: continue uploading other files even if one fails
+                continue;
+                // Hoặc nếu muốn dừng ngay khi gặp lỗi:
+                throw new Exception("Failed to upload file '{$file->getClientOriginalName()}': " . $e->getMessage());
+            }
+        }
+
+        return $uploadedFiles;
+    }
+
 
     public function delete(string $fileId): void
     {

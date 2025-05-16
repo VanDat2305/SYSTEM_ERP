@@ -41,8 +41,8 @@ class FileController extends Controller
     public function store(FileUploadRequest $request)
     {
         try {
-            $file = $this->fileService->upload(
-                $request->file('file'),
+            $file = $this->fileService->uploadMultiple(
+                $request->file('files'),
                 $request->input('folder_id')
             );
             

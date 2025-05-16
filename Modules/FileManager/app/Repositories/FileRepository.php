@@ -44,4 +44,12 @@ class FileRepository implements FileRepositoryInterface
                    ->limit($limit)
                    ->get();
     }
+    public function uploadMultiple(array $files, ?string $folderId = null): array
+    {
+        $uploadedFiles = [];
+        foreach ($files as $file) {
+            $uploadedFiles[] = $this->create($file, $folderId);
+        }
+        return $uploadedFiles;
+    }
 }
