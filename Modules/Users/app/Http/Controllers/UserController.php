@@ -100,7 +100,7 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => __('users.delete_failed'),
+                'message' => __('users::messages.users.delete_failed'),
                 'errors' => [$e->getMessage()],
             ], 500);
         }

@@ -9,6 +9,8 @@ return [
         'success' => 'Login successful!',
         'failed' => 'Login failed. Please check your credentials.',
         'credentials_incorrect' => 'The provided credentials are incorrect.',
+        'account_inactive' => 'Your account is inactive. Please contact support.',
+        'account_no_permission' => 'Your account does not have permission to access this resource. Please contact support.',
     ],
     'exceptions' => [
         'access_denied' => "You do not have permission to access this resource.",

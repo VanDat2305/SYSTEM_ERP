@@ -27,6 +27,10 @@ return [
         'failed_to_update' => 'Không thể cập nhật quyền: :error',
         'failed_to_delete' => 'Không thể xóa quyền: :error',
         'failed_to_find' => 'Không tìm thấy quyền với ID :id',
-    ],
+    ], 
+    "users" => [
+        "delete_failed" => "Không thể xóa người dùng",
+        "email_not_verified" => "Email chưa được xác nhận",
+    ]
 ];
 ?>

@@ -8,6 +8,7 @@ use Modules\Users\Http\Controllers\RoleController;
 use Modules\Users\Http\Controllers\UserController;
 use Modules\Users\Http\Controllers\PasswordResetController;
 use Modules\Users\Http\Controllers\TwoFactorAuthController;
+use Modules\Users\Http\Controllers\VerificationController;
 
 /*
  *--------------------------------------------------------------------------
@@ -24,10 +25,19 @@ use Modules\Users\Http\Controllers\TwoFactorAuthController;
 Route::prefix('v1')->group(function(){
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']); 
+    // quen mat khau
     Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink']);
     Route::get('/reset-password/{token}', [PasswordResetController::class, 'verifyToken'])->name('password.reset');
     Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
+    // 2fa
     Route::post('/two-factor-challenge', [OtpChallengeController::class, 'store']);
+    //refresh token
+    Route::post('/refresh', [AuthController::class, 'refreshToken'])->middleware('auth:sanctum');
+    //verify email
+    Route::get('email/verify/{id}/{hash}', [VerificationController::class, 'verify'])
+     ->name('email.verify')
+    ->middleware('signed');
+    Route::post('email/resend', [VerificationController::class, 'resend']);
 });
 
 

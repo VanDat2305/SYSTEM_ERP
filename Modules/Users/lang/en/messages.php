@@ -28,6 +28,10 @@ return [
         'failed_to_delete' => 'Failed to delete permission: :error',
         'failed_to_find' => 'Permission with ID :id not found',
     ],
+    "users" => [
+        "delete_failed" => "Failed to delete user",
+        "email_not_verified" => "Email not verified",
+    ]
 ];
 
 ?>

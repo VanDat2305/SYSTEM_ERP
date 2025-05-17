@@ -9,6 +9,8 @@ return [
         'success' => 'Đăng nhập thành công!',
         'failed' => 'Đăng nhập thất bại. Vui lòng kiểm tra thông tin.',
         'credentials_incorrect' => 'Thông tin đăng nhập không chính xác.',
+        'account_inactive' => 'Tài khoản của bạn không hoạt động. Vui lòng liên hệ với quản trị viên.',
+        'account_no_permission' => 'Tài khoản của bạn không có quyền truy cập. Vui lòng liên hệ với quản trị viên.',
     ],
     'exceptions' => [
         'access_denied' => "Bạn không có quyền truy cập vào tài nguyên này.",

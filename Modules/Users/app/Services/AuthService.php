@@ -3,12 +3,15 @@
 namespace Modules\Users\Services;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Modules\Users\Repositories\UserRepository;
 use Illuminate\Validation\ValidationException;
 use Modules\Users\Models\User;
+use Modules\Users\Notifications\VerifyEmailNotification;
+use Illuminate\Auth\Events\Registered;
 
 class AuthService
 {
@@ -21,7 +24,23 @@ class AuthService
 
     public function register(array $data): User
     {
-        return $this->userRepository->create($data);
+        try {
+            DB::beginTransaction();
+
+            $user = $this->userRepository->create($data);
+
+            DB::commit();
+
+            // Gửi mail sau khi commit
+            $user->notify(new VerifyEmailNotification());
+
+            return $user;
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('regist failed', ['error' => $e->getMessage()]);
+            throw new \Exception(__('messages.register.failed'), 500);
+        }
     }
 
     public function login(array $credentials)
@@ -32,21 +51,61 @@ class AuthService
                 'email' => [__('messages.login.credentials_incorrect')],
             ]);
         }
+        if ($user->status->value !== 'active') {
+            throw ValidationException::withMessages([
+                'email' => [__('messages.login.account_inactive')],
+            ]);
+        }
+        if (! $user->hasVerifiedEmail()) {
+            throw ValidationException::withMessages([
+                'email' => [__('users::messages.users.email_not_verified')],
+            ]);
+        }
         $user->update(['last_login_at' => Carbon::now()]);
         $roles = $user->roles->where('status', 'active')->pluck('name');
-        
+
         $permissions = $user->getAllPermissions()->where('status', 'active')->pluck('name');
 
         $menu = $this->buildMenu($user);
-        if ($user->two_factor_enabled) {
-            $token = $user->createToken('pre_2fa_token', ['2fa:verify'])->plainTextToken;
-        } else {
-            $token = $user->createToken('api-token', ['access:full'])->plainTextToken;
+        if (empty($menu)) {
+            throw ValidationException::withMessages([
+                'email' => [__('messages.login.account_no_permission')],
+            ]);
         }
-        $user = $this->transformUser($user);
+        if ($user->two_factor_enabled) {
+            // Token xác thực 2FA (5 phút)
+            $token = $user->createToken(
+                'pre_2fa_token',
+                ['2fa:verify'],
+                now()->addMinutes(5)
+            )->plainTextToken;
+
+            return [
+                'token' => $token,
+                'user' => $this->transformUser($user),
+                'menu' => $menu,
+                'roles' => $roles,
+                'permissions' => $permissions,
+            ];
+        }
+
+        // Tạo access token và refresh token khi không có 2FA
+        $accessToken = $user->createToken(
+            'access_token',
+            ['access:full'],
+            now()->addMinutes(15) // Access token hết hạn sau 15 phút
+        )->plainTextToken;
+
+        $refreshToken = $user->createToken(
+            'refresh_token',
+            ['refresh'],
+            now()->addDays(30) // Refresh token hết hạn sau 30 ngày
+        )->plainTextToken;
+
         return [
-            'token' => $token,
-            'user' => $user,
+            'token' => $accessToken,
+            'refresh_token' => $refreshToken,
+            'user' => $this->transformUser($user),
             'menu' => $menu,
             'roles' => $roles,
             'permissions' => $permissions,
@@ -61,7 +120,6 @@ class AuthService
             Log::error('Logout failed: ' . $e->getMessage());
             throw new \Exception(__('messages.logout.failed'), 500);
         }
-        
     }
     protected function buildMenu(User $user)
     {
@@ -127,7 +185,7 @@ class AuthService
             'status' => $user->status->value,
             'status_label' => $user->status->getLabel(),
             'last_login_at' => $user->last_login_at,
-            'two_factor_enabled' => $user->two_factor_enabled     
+            'two_factor_enabled' => $user->two_factor_enabled
         ];
     }
 }
