@@ -75,6 +75,7 @@ class RoleService
         try {
             // Tạo role với guard_name là 'api'
             $role = $this->roleRepository->create([
+                'title' => $data['title'],
                 'name' => $data['name'],
                 'guard_name' => 'api',
                 'description' => empty($data['description']) ? null : $data['description'],
@@ -102,6 +103,7 @@ class RoleService
         try {
             // Cập nhật thông tin role
             $role = $this->roleRepository->update($id, [
+                'title' => $data['title'],
                 'name' => $data['name'],
                 'description' => empty($data['description']) ? null : $data['description'],
                 'status' => empty($data['status']) ? 'active' : $data['status'],

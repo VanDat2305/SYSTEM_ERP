@@ -35,12 +35,17 @@ class PermissionController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name' => 'required|unique:permissions',
+            'title' => 'required|unique:permissions|string|max:100',
+            'name' => 'required|unique:permissions|max:100',
             'description' => 'nullable|string|max:255',
             'status' => 'in:active,inactive',
         ], [
-            'name.required' =>  __('validation.required', ['attribute' => trans('users::attr.permissions.name')]),
-            'name.unique' => __('validation.unique', ['attribute' => trans('users::attr.permissions.name')]),
+            'title.required' =>  __('validation.required', ['attribute' => trans('users::attr.permissions.name')]),
+            'title.unique' =>  __('validation.unique', ['attribute' => trans('users::attr.permissions.name')]),
+            'title.string' =>  __('validation.string', ['attribute' => trans('users::attr.permissions.name')]),
+            'title.max' =>  __('validation.max', ['attribute' => trans('users::attr.permissions.name')]),
+            'name.required' =>  __('validation.required', ['attribute' => trans('users::attr.permissions.name_code')]),
+            'name.unique' => __('validation.unique', ['attribute' => trans('users::attr.permissions.name_code')]),
             'description.nullable' => __('validation.nullable', ['attribute' => trans('users::attr.permissions.description')]),
             'description.string' => __('validation.string', ['attribute' => trans('users::attr.permissions.description')]),
             'description.max' => __('validation.max', ['attribute' => trans('users::attr.permissions.description')]),
@@ -80,12 +85,17 @@ class PermissionController extends Controller
     public function update(Request $request, $id)
     {
         $data = $request->validate([
+            'title' => 'required|string|max:100|unique:permissions,title,' . $id,
             'name' => 'required|unique:permissions,name,' . $id,
             'description' => 'nullable|string|max:255',
             'status' => 'in:active,inactive',
         ], [
-            'name.required' =>  __('validation.required', ['attribute' => trans('users::attr.permissions.name')]),
-            'name.unique' => __('validation.unique', ['attribute' => trans('users::attr.permissions.name')]),
+            'title.required' =>  __('validation.required', ['attribute' => trans('users::attr.permissions.name')]),
+            'title.unique' =>  __('validation.unique', ['attribute' => trans('users::attr.permissions.name')]),
+            'title.string' =>  __('validation.string', ['attribute' => trans('users::attr.permissions.name')]),
+            'title.max' =>  __('validation.max', ['attribute' => trans('users::attr.permissions.name')]),
+            'name.required' =>  __('validation.required', ['attribute' => trans('users::attr.permissions.name_code')]),
+            'name.unique' => __('validation.unique', ['attribute' => trans('users::attr.permissions.name_code')]),
             'description.nullable' => __('validation.nullable', ['attribute' => trans('users::attr.permissions.description')]),
             'description.string' => __('validation.string', ['attribute' => trans('users::attr.permissions.description')]),
             'description.max' => __('validation.max', ['attribute' => trans('users::attr.permissions.description')]),

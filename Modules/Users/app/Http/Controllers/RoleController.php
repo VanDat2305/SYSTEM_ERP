@@ -35,14 +35,20 @@ class RoleController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|unique:roles,name',
+            'title' => 'required|unique:roles,title|string|max:100',
+            'name' => 'required|unique:roles,name|max:100',
             'permissions' => 'nullable|array',
             'description' => 'nullable|string|max:255',
             'permissions.*' => 'exists:permissions,name',
             'status' => 'in:active,inactive'
         ],  [
-            'name.required' =>  __('validation.required', ['attribute' => trans('users::attr.roles.name')]),
-            'name.unique' => __('validation.unique', ['attribute' => trans('users::attr.roles.name')]),
+            'title.required' =>  __('validation.required', ['attribute' => trans('users::attr.roles.title')]),
+            'title.unique' =>  __('validation.unique', ['attribute' => trans('users::attr.roles.title')]),
+            'title.string' =>  __('validation.string', ['attribute' => trans('users::attr.roles.title')]),
+            'title.max' =>  __('validation.max', ['attribute' => trans('users::attr.roles.title')]),
+            'name.required' =>  __('validation.required', ['attribute' => trans('users::attr.roles.name_code')]),
+            'name.unique' => __('validation.unique', ['attribute' => trans('users::attr.roles.name_code')]),
+            'name.max' => __('validation.max', ['attribute' => trans('users::attr.roles.name_code')]),
             'permissions.array' => __('validation.array_required', ['attribute' => trans('users::attr.permissions.name_only')]),
             'permissions.*.exists' => __('validation.exists_permissions'),
             'description.string' => __('validation.string', ['attribute' => trans('users::attr.roles.description')]),
@@ -67,14 +73,20 @@ class RoleController extends Controller
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
-            'name' => 'required|unique:roles,name,' . $id,
+            'title' => 'required|string|max:100|unique:roles,title,' . $id,
+            'name' => 'required|max:100|unique:roles,name,' . $id,
             'permissions' => 'nullable|array',
             'permissions.*' => 'exists:permissions,name',
             'description' => 'nullable|string|max:255',
             'status' => 'in:active,inactive'
         ],  [
-            'name.required' =>  __('validation.required', ['attribute' => trans('users::attr.roles.name')]),
-            'name.unique' => __('validation.unique', ['attribute' => trans('users::attr.roles.name')]),
+            'title.title' =>  __('validation.requiredstring', ['attribute' => trans('users::attr.roles.title')]),
+            'title.string' =>  __('validation.string', ['attribute' => trans('users::attr.roles.title')]),
+            'title.max' =>  __('validation.max', ['attribute' => trans('users::attr.roles.title')]),
+            'title.unique' =>  __('validation.unique', ['attribute' => trans('users::attr.roles.title')]),
+            'name.required' =>  __('validation.required', ['attribute' => trans('users::attr.roles.name_code')]),
+            'name.unique' => __('validation.unique', ['attribute' => trans('users::attr.roles.name_code')]),
+            'name.max' => __('validation.max', ['attribute' => trans('users::attr.roles.name_code')]),
             'permissions.array' => __('validation.array_required', ['attribute' => trans('users::attr.permissions.name_only')]),
             'permissions.*.exists' => __('validation.exists_permissions'),
             'description.string' => __('validation.string', ['attribute' => trans('users::attr.roles.description')]),
