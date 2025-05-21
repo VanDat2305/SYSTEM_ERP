@@ -1,8 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Core\Http\Controllers\ObjectTypeController;
 use Modules\Core\Http\Controllers\CoreController;
 use Modules\Core\Http\Controllers\MenuController;
+use Modules\Core\Http\Controllers\ObjectItemController;
+use Modules\Core\Http\Controllers\ObjectMetaController;
 
 /*
  *--------------------------------------------------------------------------
@@ -23,6 +26,10 @@ Route::middleware([\App\Http\Middleware\CustomSanctumAuth::class])->prefix('v1')
     Route::post('menus', [MenuController::class, 'store']); // Thêm menu mới
     Route::put('menus/{id}', [MenuController::class, 'update']); // Cập nhật menu
     Route::post('menus/delete', [MenuController::class, 'destroy']); // Xóa menu
+
+    Route::apiResource('object-types', ObjectTypeController::class);
+    Route::apiResource('objects', ObjectItemController::class);
+    Route::apiResource('object-meta', ObjectMetaController::class);
 });
 
 use Laravel\Sanctum\Http\Controllers\CsrfCookieController;

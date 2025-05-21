@@ -6,6 +6,12 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Modules\Core\Repositories\MenuRepository;
 use Modules\Core\Interfaces\MenuRepositoryInterface;
+use Modules\Core\Interfaces\ObjectItemRepositoryInterface;
+use Modules\Core\Interfaces\ObjectMetaRepositoryInterface;
+use Modules\Core\Interfaces\ObjectTypeRepositoryInterface;
+use Modules\Core\Repositories\ObjectItemRepository;
+use Modules\Core\Repositories\ObjectMetaRepository;
+use Modules\Core\Repositories\ObjectTypeRepository;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -39,6 +45,9 @@ class CoreServiceProvider extends ServiceProvider
         $this->app->register(EventServiceProvider::class);
         $this->app->bind(MenuRepositoryInterface::class, MenuRepository::class);
         $this->app->register(RouteServiceProvider::class);
+        $this->app->bind(ObjectTypeRepositoryInterface::class, ObjectTypeRepository::class);
+        $this->app->bind(ObjectItemRepositoryInterface::class, ObjectItemRepository::class);
+        $this->app->bind(ObjectMetaRepositoryInterface::class, ObjectMetaRepository::class);
     }
 
     /**
