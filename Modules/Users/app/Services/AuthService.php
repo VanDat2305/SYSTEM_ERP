@@ -2,6 +2,7 @@
 
 namespace Modules\Users\Services;
 
+use App\Helpers\ActivityLogger;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -92,8 +93,7 @@ class AuthService
         // Tạo access token và refresh token khi không có 2FA
         $accessToken = $user->createToken(
             'access_token',
-            ['access:full'],
-            now()->addMinutes(15) // Access token hết hạn sau 15 phút
+            ['*'], // Access token hết hạn sau 15 phút
         )->plainTextToken;
 
         $refreshToken = $user->createToken(
@@ -101,6 +101,13 @@ class AuthService
             ['refresh'],
             now()->addDays(30) // Refresh token hết hạn sau 30 ngày
         )->plainTextToken;
+        ActivityLogger::log(
+            'login',
+            "Đăng nhập thành công",
+            $user,
+            [],
+            $user
+        );
 
         return [
             'token' => $accessToken,

@@ -13,10 +13,13 @@ use Modules\Users\Notifications\ResetPasswordNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 // use Modules\Users\Database\Factories\App/Models/UserFactory;
 use Modules\Users\Models\UserTwoFactorCode;
+// use Spatie\Activitylog\Traits\LogsActivity;
+// use Spatie\Activitylog\LogOptions;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, Notifiable, HasRoles;
+    // use LogsActivity;
     
     protected $guard_name = 'api';
     
@@ -47,8 +50,25 @@ class User extends Authenticatable implements MustVerifyEmail
                 throw new \Exception('Không thể xóa tài khoản có quyền superadmin.');
             }
         });
+        // static::updating(function ($model) {
+        //     if ($model->isDirty('password')) {
+        //         // Lọc bỏ giá trị password để không lưu ra log
+        //         $model->password = '******';
+        //     }
+        // });
     }
 
+        /**
+     * Cấu hình log cho Spatie
+     */
+    // public function getActivitylogOptions(): LogOptions
+    // {
+    //     return LogOptions::defaults()
+    //         ->useLogName('user') // tên log
+    //         ->logOnly(['name', 'email', 'status', 'two_factor_enabled', 'password']) // chỉ log các trường này
+    //         ->logOnlyDirty() // chỉ log nếu có thay đổi
+    //         ->dontSubmitEmptyLogs(); // không log nếu không có gì thay đổi
+    // }
 
     public function sendPasswordResetNotification($token)
     {

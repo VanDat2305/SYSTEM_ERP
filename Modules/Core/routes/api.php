@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Core\Http\Controllers\ActivityLogController;
 use Modules\Core\Http\Controllers\ObjectTypeController;
 use Modules\Core\Http\Controllers\CoreController;
 use Modules\Core\Http\Controllers\MenuController;
@@ -30,6 +31,9 @@ Route::middleware([\App\Http\Middleware\CustomSanctumAuth::class])->prefix('v1')
     Route::apiResource('object-types', ObjectTypeController::class);
     Route::apiResource('objects', ObjectItemController::class);
     Route::apiResource('object-meta', ObjectMetaController::class);
+
+    Route::get('/logs', [ActivityLogController::class, 'index']);
+
 });
 
 use Laravel\Sanctum\Http\Controllers\CsrfCookieController;
