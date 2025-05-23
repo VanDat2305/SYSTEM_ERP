@@ -36,12 +36,24 @@ class ActivityLogController extends Controller
             )
 
             // lọc theo khoảng thời gian
-            ->when($request->date_from, fn($q) =>
-                $q->whereDate('created_at', '>=', $request->date_from)
+            ->when($request->created_at_from, fn($q) =>
+                $q->whereDate('created_at', '>=', $request->created_at_from)
             )
-            ->when($request->date_to, fn($q) =>
-                $q->whereDate('created_at', '<=', $request->date_to)
+            ->when($request->created_at_to, fn($q) =>
+                $q->whereDate('created_at', '<=', $request->created_at_to)
             )
+            ->when($request->search_field, function ($q) use ($request) {
+                $searchField = $request->search_field;
+                $searchValue = $request->search_value;
+                // dd($searchField, $searchValue);
+                if (in_array($searchField, ['log_name', 'description'])) {
+                    $q->where($searchField,  'like', '%' . $searchValue . '%');
+                } else {
+                    $q->whereHas('causer', function ($query) use ($searchField, $searchValue) {
+                        $query->where($searchField, 'like', '%' . $searchValue . '%');
+                    });
+                }
+            })
 
             ->latest();
 
