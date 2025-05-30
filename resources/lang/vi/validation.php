@@ -66,4 +66,16 @@ return [
     'array_required' => 'Danh sách :attribute là bắt buộc.',
     'array_min' => 'Danh sách :attribute phải chứa ít nhất một phần tử.',
     'exists_permissions' => 'Một hoặc nhiều quyền được chọn không hợp lệ.',
+    'password' => [
+        'letters' => ':attribute phải chứa ít nhất một chữ cái.',
+        'mixed' => ':attribute phải chứa cả chữ hoa và chữ thường.',
+        'numbers' => ':attribute phải chứa ít nhất một số.',
+        'symbols' => ':attribute phải chứa ít nhất một ký tự đặc biệt.',
+        'uncompromised' => ':attribute đã sử dụng trước đó. Vui lòng chọn mật khẩu khác.',
+    ],
+    'current_password' => 'Mật khẩu hiện tại không đúng.',
+    'attributes' => [
+        'new_password' => 'Mật khẩu mới',
+        'current_password' => 'Mật khẩu hiện tại',
+    ],
 ];

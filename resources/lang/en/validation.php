@@ -66,4 +66,16 @@ return [
     'array_required' => 'The :attribute list is required.',
     'array_min' => 'The :attribute list must contain at least one item.',
     'exists_permissions' => 'One or more selected permissions are invalid.',
+    'password' => [
+        'letters' => 'The :attribute must contain at least one letter.',
+        'mixed' => 'The :attribute must contain at least one uppercase and one lowercase letter.',
+        'numbers' => 'The :attribute must contain at least one number.',
+        'symbols' => 'The :attribute must contain at least one symbol.',
+        'uncompromised' => 'The given :attribute has appeared in a data leak. Please choose a different :attribute.',
+    ],
+    'current_password' => 'The current password is incorrect.',
+    'attributes' => [
+        'new_password' => 'New password',
+        'current_password' => 'Current password',
+    ],
 ];

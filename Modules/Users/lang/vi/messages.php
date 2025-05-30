@@ -31,6 +31,7 @@ return [
     "users" => [
         "delete_failed" => "Không thể xóa người dùng",
         "email_not_verified" => "Email chưa được xác nhận",
+        "change_password_success" => "Đổi mật khẩu thành công",
     ]
 ];
 ?>

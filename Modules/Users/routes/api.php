@@ -64,4 +64,8 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\CustomSanctumAuth::class
     // Permissions
     Route::resource('permissions', PermissionController::class)->only(['index', 'show', 'store', 'update']);
     Route::post('permissions/delete', [PermissionController::class, 'destroy'])->name('permissions.destroy');
+
+    //Change Password
+    Route::put('auth/change-password', [UserController::class, 'changePassword'])->name('users.changePassword');
+
 });

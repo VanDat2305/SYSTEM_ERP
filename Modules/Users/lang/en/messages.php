@@ -31,6 +31,7 @@ return [
     "users" => [
         "delete_failed" => "Failed to delete user",
         "email_not_verified" => "Email not verified",
+        "change_password_success" => "Password changed successfully",
     ]
 ];
 

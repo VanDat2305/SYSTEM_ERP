@@ -9,6 +9,8 @@ use Modules\Users\Enums\UserStatus;
 use Modules\Users\Http\Requests\CreateUserRequest;
 use Modules\Users\Http\Requests\UpdateUserRequest;
 use Modules\Users\Services\UserService;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
@@ -104,5 +106,34 @@ class UserController extends Controller
                 'errors' => [$e->getMessage()],
             ], 500);
         }
+    }
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => ['required', 'string', 'current_password'],
+            'new_password' => [
+                'required',
+                'string',
+                'confirmed',
+                Password::min(8)
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols()
+                    ->uncompromised(),
+            ],
+        ]);
+
+        $user = $request->user();
+
+        $user->update([
+            'password' => Hash::make($request->new_password),
+        ]);
+
+        // Revoke all tokens (optional)
+        $user->tokens()->delete();
+
+        return response()->json([
+            'message' => __('users::messages.users.change_password_success'),
+        ]);
     }
 }
