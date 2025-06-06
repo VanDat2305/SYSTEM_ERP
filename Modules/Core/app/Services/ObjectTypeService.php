@@ -3,7 +3,9 @@
 namespace Modules\Core\Services;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Modules\Core\Interfaces\ObjectTypeRepositoryInterface;
+use Modules\Core\Models\ObjectType;
 
 class ObjectTypeService
 {
@@ -37,14 +39,35 @@ class ObjectTypeService
     {
         $data['created_by'] = Auth::guard('sanctum')->user()->id ?? null;
         $data['status'] = $data['status'] ?? 'active';
-        return $this->repo->create($data);
+        $repo = $this->repo->create($data);
+        $this->refreshObjectTypeCache();
+        return $repo;
     }
     public function update($id, array $data)
     {
-        return $this->repo->update($id, $data);
+        $repo = $this->repo->update($id, $data);
+        $this->refreshObjectTypeCache();
+        return $repo;
     }
     public function destroy($id)
     {
         return $this->repo->delete($id);
     }
+    public function getCachedObjectTypes()
+    {
+        $cacheKey = 'core:objects:types';
+
+        return Cache::remember($cacheKey, now()->addHours(2), function () {
+            return ObjectType::orderBy('order')->get(); // hoặc thêm `->where('status', 'active')`
+        });
+    }
+
+    public function refreshObjectTypeCache()
+    {
+        $cacheKey = 'core:objects:types';
+        Cache::forget($cacheKey);
+
+        return $this->getCachedObjectTypes();
+    }
+
 }

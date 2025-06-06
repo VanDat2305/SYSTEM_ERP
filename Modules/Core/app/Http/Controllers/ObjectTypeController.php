@@ -4,9 +4,12 @@ namespace Modules\Core\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Modules\Core\Http\Requests\ObjectTypeRequest;
 use Modules\Core\Services\ObjectTypeService;
 use Modules\Core\Http\Resources\ObjectTypeResource;
+use Modules\Core\Models\ObjectItem;
+use Modules\Core\Models\ObjectType;
 
 class ObjectTypeController extends Controller
 {
@@ -74,4 +77,90 @@ class ObjectTypeController extends Controller
             ], 500);
         }
     }
+   public function getAllCachedCategories(Request $request)
+    {
+        $typeCacheKey = 'core:objects:types';
+
+        $objectTypes = Cache::remember($typeCacheKey, now()->addHours(2), function () {
+            return ObjectType::orderBy('order')->get();
+        });
+
+        if ($objectTypes->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không có loại danh mục nào được tìm thấy.',
+                'data' => [],
+            ]);
+        }
+
+        $categories = [];
+
+        foreach ($objectTypes as $type) {
+            $itemCacheKey = "core:objects:type:{$type->code}";
+
+            $items = Cache::remember($itemCacheKey, now()->addHours(2), function () use ($type) {
+                return ObjectItem::with('meta')
+                    ->where('object_type_id', $type->id)
+                    ->where('status', 'active')
+                    ->orderBy('order')
+                    ->get();
+            });
+
+            $categories[] = [
+                'type' => $type,
+                'items' => $items,
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lấy danh sách danh mục từ cache thành công.',
+            'data' => $categories,
+        ]);
+    }
+
+    public function refreshAllCategoryCache()
+    {
+        $typeCacheKey = 'core:objects:types';
+        Cache::forget($typeCacheKey);
+
+        $objectTypes = Cache::remember($typeCacheKey, now()->addHours(2), function () {
+            return ObjectType::orderBy('order')->get();
+        });
+
+        if ($objectTypes->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không có loại danh mục nào để refresh cache.',
+                'data' => [],
+            ]);
+        }
+
+        $categories = [];
+
+        foreach ($objectTypes as $type) {
+            $itemCacheKey = "core:objects:type:{$type->code}";
+            Cache::forget($itemCacheKey);
+
+            $items = Cache::remember($itemCacheKey, now()->addHours(2), function () use ($type) {
+                return ObjectItem::with('meta')
+                    ->where('object_type_id', $type->id)
+                    ->where('status', 'active')
+                    ->orderBy('order')
+                    ->get();
+            });
+
+            $categories[] = [
+                'type' => $type,
+                'items' => $items,
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã làm mới toàn bộ cache danh mục.',
+            'data' => $categories,
+        ]);
+    }
+
 }

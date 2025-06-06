@@ -1,5 +1,6 @@
 {
     "Users": true,
     "Core": true,
-    "FileManager": true
+    "FileManager": true,
+    "Service": true
 }

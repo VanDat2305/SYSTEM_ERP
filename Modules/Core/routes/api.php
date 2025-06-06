@@ -32,6 +32,11 @@ Route::middleware([\App\Http\Middleware\CustomSanctumAuth::class])->prefix('v1')
     Route::apiResource('objects', ObjectItemController::class);
     Route::apiResource('object-meta', ObjectMetaController::class);
 
+    Route::get('/objects-cache', [ObjectTypeController::class, 'getAllCachedCategories']);
+    Route::get('/objects-refesh-cache', [ObjectTypeController::class, 'refreshAllCategoryCache']);
+
+    
+
     Route::get('/logs', [ActivityLogController::class, 'index']);
 
 });

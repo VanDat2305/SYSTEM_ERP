@@ -11,17 +11,14 @@ class ActivityLogController extends Controller
 {
     public function index(Request $request)
     {
-        $user = Auth::guard('sanctum')->user();   
+        $user = Auth::guard('sanctum')->user();
         $query = Activity::query()
             ->with(['causer']) // eager load người tạo nếu có
-
             // Giới hạn truy vấn nếu không phải superadmin
-            ->when(!$user->hasRole('superadmin'), fn($q) =>
-                $q->where('causer_id', $user->id)
+            ->when(!optional($user)->hasRole('superadmin'), fn($q) =>
+                $q->where('causer_id', optional($user)->id)
             )
-
-            // Nếu là superadmin, có thể lọc theo causer_id thủ công
-            ->when($user->hasRole('superadmin') && $request->filled('causer_id'), fn($q) =>
+            ->when(optional($user)->hasRole('superadmin') && $request->filled('causer_id'), fn($q) =>
                 $q->where('causer_id', $request->causer_id)
             )
 
@@ -48,13 +45,13 @@ class ActivityLogController extends Controller
                 // dd($searchField, $searchValue);
                 if (in_array($searchField, ['log_name', 'description'])) {
                     $q->where($searchField,  'like', '%' . $searchValue . '%');
-                } else {
+                } else if (in_array($searchField, ['causer.name'])) {
                     $q->whereHas('causer', function ($query) use ($searchField, $searchValue) {
-                        $query->where($searchField, 'like', '%' . $searchValue . '%');
+                        $searchField = str_replace('causer.', '', $searchField); // Chuyển đổi 'causer.name' thành 'causer_name'
+                        $query->where("users.$searchField", 'like', '%' . $searchValue . '%');
                     });
                 }
             })
-
             ->latest();
 
         return response()->json($query->paginate($request->get('per_page', 20)));
