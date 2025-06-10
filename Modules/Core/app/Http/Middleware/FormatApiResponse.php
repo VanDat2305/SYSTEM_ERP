@@ -32,6 +32,13 @@ class FormatApiResponse
         }
 
         // Xử lý response thông thường với message đa ngôn ngữ
+        if ($response->status() >= 400) {
+            return ResponseHelper::error(
+                message: $data['message'] ?? __('messages.error'),
+                errors: $data['errors'] ?? [],
+                code: $response->status()
+            );
+        }
         return ResponseHelper::success(
             data: $data['data'] ?? $data,
             message: $data['message'] ?? __('messages.success'),
