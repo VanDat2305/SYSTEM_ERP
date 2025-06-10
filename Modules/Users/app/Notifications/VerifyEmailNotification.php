@@ -21,14 +21,18 @@ class VerifyEmailNotification extends BaseVerifyEmail
             ]
         );
 
-        // Lấy phần signature
-        $signature = Str::after($signedURL, 'signature=');
-        $expires = now()->addMinutes(60)->timestamp;
+        // Parse URL để lấy các components một cách chính xác
+        $parsedUrl = parse_url($signedURL);
+        parse_str($parsedUrl['query'], $queryParams);
+        
+        // Lấy signature và expires từ query parameters (không phải từ string)
+        $signature = $queryParams['signature'];
+        $expires = $queryParams['expires'];
 
         // URL frontend xác minh (SPA)
         $frontendUrl = config('app.frontend_url');
         $verifyUrl = "{$frontendUrl}/verify/{$notifiable->getKey()}/" . sha1($notifiable->getEmailForVerification())
-            . "?expires={$expires}&signature={$signature}";
+            . "?expires={$expires}&signature=" . urlencode($signature);
 
         return (new MailMessage)
             ->subject(trans('users::verify.subject'))
@@ -37,4 +41,3 @@ class VerifyEmailNotification extends BaseVerifyEmail
             ->line(trans('users::verify.line2'));
     }
 }
-
