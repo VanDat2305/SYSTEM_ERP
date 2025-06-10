@@ -7,6 +7,7 @@ use Modules\Users\Http\Controllers\PermissionController;
 use Modules\Users\Http\Controllers\RoleController;
 use Modules\Users\Http\Controllers\UserController;
 use Modules\Users\Http\Controllers\PasswordResetController;
+use Modules\Users\Http\Controllers\TeamController;
 use Modules\Users\Http\Controllers\TwoFactorAuthController;
 use Modules\Users\Http\Controllers\VerificationController;
 
@@ -67,5 +68,11 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\CustomSanctumAuth::class
 
     //Change Password
     Route::put('auth/change-password', [UserController::class, 'changePassword'])->name('users.changePassword');
+
+    // Teams
+    Route::apiResource('teams', TeamController::class);
+    Route::post('teams/{team}/users', [TeamController::class, 'addUser']);
+    Route::put('teams/{team}/users/{user}', [TeamController::class, 'updateUserTeam']);
+    Route::delete('teams/{team}/users/{user}', [TeamController::class, 'removeUser']);
 
 });

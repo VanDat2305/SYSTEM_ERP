@@ -7,11 +7,13 @@ use Illuminate\Support\ServiceProvider;
 use Modules\Users\Interfaces\PermissionRepositoryInterface;
 use Modules\Users\Repositories\PermissionRepository;
 use Modules\Users\Interfaces\RoleRepositoryInterface;
+use Modules\Users\Interfaces\TeamRepositoryInterface;
 use Modules\Users\Repositories\RoleRepository;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Modules\Users\Interfaces\UserRepositoryInterface;
+use Modules\Users\Repositories\TeamRepository;
 use Modules\Users\Repositories\UserRepository;
 
 class UsersServiceProvider extends ServiceProvider
@@ -47,6 +49,8 @@ class UsersServiceProvider extends ServiceProvider
         $this->app->bind(RoleRepositoryInterface::class, RoleRepository::class);
         // Binding cho Permission
         $this->app->bind(PermissionRepositoryInterface::class, PermissionRepository::class);
+        // Binding cho Teams
+        $this->app->bind(TeamRepositoryInterface::class, TeamRepository::class);
     }
 
     /**

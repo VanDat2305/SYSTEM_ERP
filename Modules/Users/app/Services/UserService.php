@@ -9,6 +9,7 @@ use App\Exceptions\CustomException;
 use App\Helpers\ActivityLogger;
 use Illuminate\Support\Arr;
 use Modules\Users\Models\User;
+use Modules\Users\Notifications\VerifyEmailNotification;
 use Spatie\Activitylog\Models\Activity;
 
 
@@ -68,7 +69,8 @@ class UserService
                 if ($permissions) {
                     $user->givePermissionTo($permissions);
                 }
-
+                // Gửi mail sau khi commit
+                $user->notify(new VerifyEmailNotification());
                 return $this->transformUser($user);
             });
         } catch (\Throwable $e) {

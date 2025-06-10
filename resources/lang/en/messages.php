@@ -18,6 +18,7 @@ return [
         'data_not_found' => 'Data not found.',
     ],
     'success' => 'Success',
+    "error" => 'Error',
     'deleted_one_success' => ':attribute deleted successfully.', // Cho xóa một
     'deleted_many_success' => ':count :attribute deleted successfully.', // Cho xóa nhiều
     

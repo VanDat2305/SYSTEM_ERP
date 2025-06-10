@@ -18,6 +18,7 @@ return [
         'data_not_found' => 'Không tìm thấy dữ liệu.',
     ],
     'success' => 'Thành công',
+    'error' => 'Lỗi',
     
     // Thông báo thành công
     'deleted_one_success' => ':attribute đã được xóa thành công.', // Cho xóa một

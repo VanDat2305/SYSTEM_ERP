@@ -79,4 +79,10 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(UserTwoFactorCode::class);
     }
+    
+    public function teams()
+    {
+        return $this->belongsToMany(Team::class, 'team_user')->withTimestamps()->withPivot('role');
+    }
+
 }

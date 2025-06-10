@@ -90,6 +90,16 @@ class ObjectTypeSeeder extends Seeder
                     ['code' => 'GB', 'name' => 'Gigabyte', 'description' => 'Gigabyte'],
                 ]
             ],
+            [
+                'code' => 'role_team_option',
+                'name' => 'Vai trò nhóm người dùng',
+                'description' => 'Danh mục định nghĩa các vai trò trong nhóm với các mức phân quyền khác nhau, dùng để phân loại quyền truy cập và thao tác của người dùng trong từng team trên hệ thống.',
+                'values' => [
+                    ['code' => 'owner', 'name' => 'Chủ nhóm', 'description' => 'Toàn quyền với team, bao gồm chuyển lead, xóa team, phân quyền.'],
+                    ['code' => 'lead', 'name' => 'Trưởng nhóm', 'description' => 'Quản lý vận hành, phân công và duyệt công việc trong team.'],
+                    ['code' => 'member', 'name' => 'Thành viên', 'description' => 'Thực thi công việc được giao trong team.'],
+                ]
+            ],
         ];
 
         foreach ($objectTypes as $type) {
