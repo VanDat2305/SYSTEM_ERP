@@ -16,6 +16,7 @@ return [
         'access_denied' => "Bạn không có quyền truy cập vào tài nguyên này.",
         'invalid_data' => 'Dữ liệu không hợp lệ.',
         'data_not_found' => 'Không tìm thấy dữ liệu.',
+        'unauthorized_permission' => 'Bạn không có quyền thực hiện hành động này.',
     ],
     'success' => 'Thành công',
     'error' => 'Lỗi',

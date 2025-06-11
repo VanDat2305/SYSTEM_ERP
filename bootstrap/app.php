@@ -24,6 +24,24 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->renderable(
+            fn(Illuminate\Auth\AuthenticationException $e, Illuminate\Http\Request $request) =>
+                response()->json([
+                    'status' => false,
+                    'message' => __('messages.auth.unauthenticated'),
+                    'code' => 401,
+                ], 401)
+        );
+
+            // 1. Spatie Permission Unauthorized
+        $exceptions->renderable(
+            fn(Spatie\Permission\Exceptions\UnauthorizedException $e, Illuminate\Http\Request $request) =>
+                response()->json([
+                    'status' => false,
+                    'message' => __('messages.exceptions.unauthorized_permission'), // Dùng file lang
+                    'code' => 403,
+                ], 403)
+        );
         // Custom cho AccessDeniedHttpException
         $exceptions->renderable(
             fn(Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException $e, Illuminate\Http\Request $request) =>

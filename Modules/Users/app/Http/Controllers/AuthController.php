@@ -70,7 +70,7 @@ class AuthController extends Controller
         // Kiểm tra user đã xác thực chưa
         if (!$request->user()) {
             return response()->json([
-                'message' => 'Unauthenticated'
+                'message' => __('messages.auth.unauthenticated'),
             ], 401);
         }
         try {

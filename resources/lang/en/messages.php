@@ -16,6 +16,7 @@ return [
         'access_denied' => "You do not have permission to access this resource.",
         'invalid_data' => 'Invalid data.',
         'data_not_found' => 'Data not found.',
+        'unauthorized_permission' => 'You do not have permission to perform this action.',
     ],
     'success' => 'Success',
     "error" => 'Error',

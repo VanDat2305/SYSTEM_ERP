@@ -2,5 +2,6 @@
     "Users": true,
     "Core": true,
     "FileManager": true,
-    "Service": true
+    "Service": true,
+    "Customer": true
 }
