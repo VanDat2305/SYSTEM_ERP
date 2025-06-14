@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use Modules\Customer\Helpers\CustomerCodeHelper;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
@@ -15,6 +16,7 @@ class Customer extends Model
 
     protected $fillable = [
         'customer_type',
+        'customer_code',
         'full_name',
         'short_name',
         'gender',
@@ -29,7 +31,8 @@ class Customer extends Model
         'website',
         'team_id',
         'assigned_to',
-        'is_active'
+        // 'is_active'
+        'status',
     ];
 
     protected $casts = [
@@ -50,6 +53,9 @@ class Customer extends Model
         static::creating(function ($model) {
             if (empty($model->id)) {
                 $model->id = (string) Str::uuid();
+            }
+            if (empty($model->customer_code)) {
+                $model->customer_code = CustomerCodeHelper::generate('KH');
             }
         });
     }

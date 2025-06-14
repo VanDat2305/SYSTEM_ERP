@@ -23,14 +23,15 @@ class CreateCustomerRequest extends FormRequest
             'tax_code' => 'nullable|string|max:30',
             'industry' => 'nullable|string|max:100',
             'address' => 'nullable|string|max:255',
-            'province_code' => 'nullable|string|max:20', // Assuming province_code is a string, adjust as necessary
+            'province_code' => 'nullable|max:20', // Assuming province_code is a string, adjust as necessary
             'identity_type' => ['nullable'], //, Rule::in(['CCCD', 'CMND', 'PP'])
             'identity_number' => 'nullable|string|max:50',
             'position' => 'nullable|string|max:100',
             'website' => 'nullable|url|max:255',
             'team_id' => 'nullable|uuid',
             'assigned_to' => 'nullable|uuid',
-            'is_active' => 'boolean',
+            // 'is_active' => 'boolean',
+            'status' => ['nullable'],
 
             'contacts' => 'nullable|array',
             'contacts.*.contact_type' => ['required'], //, Rule::in(['phone', 'email'])
@@ -81,7 +82,8 @@ class CreateCustomerRequest extends FormRequest
             'website' => __('customer::attributes.website'),
             'team_id' => __('customer::attributes.team_id'),
             'assigned_to' => __('customer::attributes.assigned_to'),
-            'is_active' => __('customer::attributes.is_active'),
+            // 'is_active' => __('customer::attributes.is_active'),
+            // 'status' => __('customer::attributes.status'),
 
             // Contact fields
             'contacts' => __('customer::attributes.contacts'),

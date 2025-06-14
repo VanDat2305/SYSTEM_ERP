@@ -7,6 +7,7 @@ use Modules\Core\Http\Controllers\CoreController;
 use Modules\Core\Http\Controllers\MenuController;
 use Modules\Core\Http\Controllers\ObjectItemController;
 use Modules\Core\Http\Controllers\ObjectMetaController;
+use Modules\Core\Http\Controllers\ProvinceController;
 
 /*
  *--------------------------------------------------------------------------
@@ -38,6 +39,10 @@ Route::middleware([\App\Http\Middleware\CustomSanctumAuth::class])->prefix('v1')
     
 
     Route::get('/logs', [ActivityLogController::class, 'index']);
+
+    Route::get('/vn-provinces', [ProvinceController::class, 'getProvinces']);
+    Route::get('/vn-districts/{provinceCode}', [ProvinceController::class, 'getDistricts']);
+    Route::get('/vn-wards/{districtCode}', [ProvinceController::class, 'getWards']);
 
 });
 

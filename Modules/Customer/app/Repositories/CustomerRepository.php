@@ -25,8 +25,12 @@ class CustomerRepository implements CustomerRepositoryInterface
     {
         $query = $this->model->with(['contacts', 'representatives']);
 
-        if (!empty($filters['customer_type'])) {
+        if (!empty($filters['customer_type']) && strtolower($filters['customer_type']) !== 'all') {
             $query->where('customer_type', $filters['customer_type']);
+        }
+
+        if (!empty($filters['status']) && strtolower($filters['status']) !== 'all') {
+            $query->where('status', $filters['status']);
         }
 
         if (!empty($filters['is_active'])) {
@@ -34,11 +38,14 @@ class CustomerRepository implements CustomerRepositoryInterface
         }
 
         if (!empty($filters['team_id'])) {
-            $query->where('team_id', $filters['team_id']);
+            $query->whereIn('team_id', $filters['team_id']);
         }
 
         if (!empty($filters['assigned_to'])) {
-            $query->where('assigned_to', $filters['assigned_to']);
+            $query->whereIn('assigned_to', $filters['assigned_to']);
+        }
+        if (!empty($filters['query']) && !empty($filters['field'])) {
+            $query->where($filters['field'], 'like', "%{$filters['query']}%");
         }
 
         if (!empty($filters['search'])) {
@@ -50,8 +57,34 @@ class CustomerRepository implements CustomerRepositoryInterface
                   ->orWhere('identity_number', 'like', "%{$search}%");
             });
         }
+        if (!empty($filters['created_at'])) {
+            $createdAt = $filters['created_at'];
 
-        return $query->orderBy('created_at', 'desc')->paginate($perPage);
+            if (isset($createdAt['from']) && !empty($createdAt['from'])) {
+                // Thêm giờ đầu ngày nếu chỉ có yyyy-mm-dd
+                $from = strlen($createdAt['from']) <= 10
+                    ? $createdAt['from'] . ' 00:00:00'
+                    : $createdAt['from'];
+                $query->where('created_at', '>=', $from);
+            }
+
+            if (isset($createdAt['to']) && !empty($createdAt['to'])) {
+                // Thêm giờ cuối ngày nếu chỉ có yyyy-mm-dd
+                $to = strlen($createdAt['to']) <= 10
+                    ? $createdAt['to'] . ' 23:59:59'
+                    : $createdAt['to'];
+                $query->where('created_at', '<=', $to);
+            }
+        }
+
+
+        if (!empty($filters['sort_by']) && !empty($filters['sort_order'])) {
+            $query->orderBy($filters['sort_by'], $filters['sort_order']);
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        return $query->paginate($perPage);
     }
 
     public function find(string $id): ?Customer

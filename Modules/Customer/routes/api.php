@@ -26,7 +26,7 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
         Route::get('/{id}', [CustomerController::class, 'show'])->middleware('permission:customers.view');
         Route::put('/{id}', [CustomerController::class, 'update'])->middleware('permission:customers.update');
         Route::delete('/{id}', [CustomerController::class, 'destroy'])->middleware('permission:customers.delete');
-        Route::put('/{id}/toggle-status', [CustomerController::class, 'toggleStatus'])->middleware('permission:customers.toggle_status');
+        // Route::put('/{id}/toggle-status', [CustomerController::class, 'toggleStatus'])->middleware('permission:customers.toggle_status');
 
         // Customer contacts
         Route::get('/{customerId}/contacts', [CustomerContactController::class, 'index'])->middleware('permission:customers.contact.manage');

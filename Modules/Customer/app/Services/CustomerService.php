@@ -46,7 +46,6 @@ class CustomerService
     public function createCustomer(array $data): Customer
     {
         DB::beginTransaction();
-
         try {
             // Create customer
             $customerData = collect($data)->only([
@@ -65,7 +64,8 @@ class CustomerService
                 'website',
                 'team_id',
                 'assigned_to',
-                'is_active'
+                // 'is_active'
+                'status',
             ])->toArray();
             if ($this->isDuplicateCustomer($customerData)) {
                 throw new \Exception(__('customer::messages.duplicate_customer'));
@@ -126,7 +126,8 @@ class CustomerService
                 'website',
                 'team_id',
                 'assigned_to',
-                'is_active'
+                // 'is_active'
+                'status',
             ])->toArray();
             if ($this->isDuplicateCustomer($customerData, $id)) {
                 throw new \Exception(__('customer::messages.duplicate_customer'));
@@ -247,7 +248,7 @@ class CustomerService
     {
         foreach ($representatives as $rep) {
             $query = DB::table('customer_representatives')
-                ->where('name', $rep['name'])
+                ->where('full_name', $rep['full_name'])
                 ->where('email', $rep['email']);
             //identity_type và identity_number có thể là duy nhất trong một khách hàng
             if (!empty($rep['identity_type']) && !empty($rep['identity_number'])) {

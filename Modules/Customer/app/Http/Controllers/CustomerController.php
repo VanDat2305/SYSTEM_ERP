@@ -22,7 +22,18 @@ class CustomerController extends Controller
     {
         try {
             $perPage = $request->get('per_page', 15);
-            $filters = $request->only(['customer_type', 'is_active', 'team_id', 'assigned_to', 'search']);
+            $filters = $request->only([
+                'customer_type',
+                'team_id',
+                'assigned_to',
+                'search',
+                'status',
+                'query',
+                'field',
+                'sort_by',
+                'sort_order',
+                'created_at'
+            ]);
             
             $customers = $this->customerService->getCustomersPaginated($perPage, $filters);
             
