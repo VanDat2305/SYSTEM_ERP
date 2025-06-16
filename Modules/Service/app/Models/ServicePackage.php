@@ -20,6 +20,8 @@ class ServicePackage extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'base_price' => 'decimal:2',
+        'tax_rate' => 'decimal:2',
+        'tax_included' => 'boolean',
     ];
     public static function boot()
     {
@@ -31,7 +33,7 @@ class ServicePackage extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['type_service', 'customer_type', 'package_code', 'package_name', 'description', 'base_price', 'currency', 'billing_cycle', 'is_active', 'display_order'])
+            ->logOnly(['type_service', 'customer_type', 'package_code', 'package_name', 'description', 'base_price', 'currency', 'billing_cycle', 'is_active', 'display_order', 'tax_rate', 'tax_included'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
