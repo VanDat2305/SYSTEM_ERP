@@ -1,7 +1,11 @@
 <?php
 
 return [
-
+    'type' => [
+        'individual' => 'Cá nhân',
+        'organization' => 'Tổ chức',
+        'other' => 'Khác',
+    ],
     'customer_type' => 'Loại khách hàng',
     'full_name' => 'Họ tên',
     'short_name' => 'Tên viết tắt',

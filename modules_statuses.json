@@ -3,5 +3,6 @@
     "Core": true,
     "FileManager": true,
     "Service": true,
-    "Customer": true
+    "Customer": true,
+    "Order": true
 }

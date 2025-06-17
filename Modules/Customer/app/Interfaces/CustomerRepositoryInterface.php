@@ -18,4 +18,5 @@ interface CustomerRepositoryInterface
     public function findByTeam(string $teamId): Collection;
     public function findActive(): Collection;
     public function search(string $keyword): Collection;
+    public function findByCustomerCode(string $customerCode): ?Customer;
 }

@@ -62,4 +62,9 @@ class ServicePackageController extends Controller
             'message' => __("service::messages.package.deleted")
         ], 201);
     }
+    public function showFeatures(ServicePackage $package): JsonResponse
+    {
+        $features = $package->features()->get();
+        return response()->json($features);
+    }
 }

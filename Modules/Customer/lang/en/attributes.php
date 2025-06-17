@@ -1,6 +1,11 @@
 <?php
 
 return [
+    'type' => [
+        'individual' => 'Individual',
+        'organization' => 'Organization',
+        'other' => 'Other',
+    ],
     // Customer
     'customer_type' => 'Customer Type',
     'full_name' => 'Full Name',

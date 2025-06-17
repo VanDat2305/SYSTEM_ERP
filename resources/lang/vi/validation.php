@@ -77,5 +77,26 @@ return [
     'attributes' => [
         'new_password' => 'Mật khẩu mới',
         'current_password' => 'Mật khẩu hiện tại',
+
+        // thuôc tính đơn hàng 
+        'customer_id' => 'Khách hàng',
+        'order_status' => 'Trạng thái đơn hàng',
+        'team_id' => 'Nhóm phụ trách',
+        'created_by' => 'Người tạo',
+        'contract_id' => 'Hợp đồng',
+        'opportunity_id' => 'Cơ hội',
+
+        'order_details' => 'Chi tiết đơn hàng',
+        'order_details.*.service_package_id' => 'Gói dịch vụ',
+        'order_details.*.package_code' => 'Mã gói',
+        'order_details.*.package_name' => 'Tên gói',
+        'order_details.*.base_price' => 'Giá gốc',
+        'order_details.*.quantity' => 'Số lượng',
+        'order_details.*.currency' => 'Đơn vị tiền tệ',
+        'order_details.*.start_date' => 'Ngày bắt đầu',
+        'order_details.*.end_date' => 'Ngày kết thúc',
+        'order_details.*.tax_rate' => 'Thuế suất',
+        'order_details.*.tax_included' => 'Đã bao gồm thuế',
+        'order_details.*.features' => 'Tính năng đi kèm',
     ],
 ];

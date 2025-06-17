@@ -34,6 +34,10 @@ class Customer extends Model
         // 'is_active'
         'status',
     ];
+    protected $appends = [
+        'customer_type', 
+        'view_customer_type'  // Trường chỉ để hiển thị
+    ];
 
     protected $casts = [
         'id' => 'string',
@@ -58,6 +62,22 @@ class Customer extends Model
                 $model->customer_code = CustomerCodeHelper::generate('KH');
             }
         });
+    }
+
+    // Accessor cho trường gốc (nếu cần)
+    public function getCustomerTypeAttribute()
+    {
+        return $this->getRawOriginal('customer_type'); // Trả về giá trị gốc từ DB
+    }
+
+    // Accessor cho trường view (chỉ hiển thị)
+    public function getViewCustomerTypeAttribute()
+    {
+        return match(strtoupper($this->getRawOriginal('customer_type'))) {
+            'INDIVIDUAL' => __('customer::attributes.type.individual'),
+            'ORGANIZATION' => __('customer::attributes.type.organization'),
+            default => __('customer::attributes.type.other'),
+        };
     }
 
     public function contacts(): HasMany

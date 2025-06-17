@@ -24,6 +24,7 @@ class CustomerController extends Controller
             $perPage = $request->get('per_page', 15);
             $filters = $request->only([
                 'customer_type',
+                'customer_code',
                 'team_id',
                 'assigned_to',
                 'search',
@@ -208,6 +209,27 @@ class CustomerController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => __('customer::messages.error_retrieving_by_type'),
+                'errors' => $e->getMessage()
+            ], 500);
+        }
+    }
+    public function getByCustomerCode(string $customerCode): JsonResponse
+    {
+        try {
+            $customer = $this->customerService->getCustomerByCode($customerCode);
+            
+            if (!$customer) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('customer::messages.customer_not_found')
+                ], 404);
+            }
+    
+            return response()->json($customer, 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => __('customer::messages.error_retrieving_customer'),
                 'errors' => $e->getMessage()
             ], 500);
         }

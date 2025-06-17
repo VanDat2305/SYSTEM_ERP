@@ -158,6 +158,11 @@ class CustomerService
         return $this->customerRepository->delete($id);
     }
 
+    public function getCustomerByCode(string $customerCode): ?Customer
+    {
+        return $this->customerRepository->findByCustomerCode($customerCode);
+    }
+
     public function getCustomersByType(string $type): Collection
     {
         return $this->customerRepository->findByType($type);

@@ -23,6 +23,8 @@ class ServicePackageRequest extends FormRequest
             'base_price' => ['required', 'numeric', 'min:0'],
             'currency' => ['required', 'string', 'max:20'],
             'billing_cycle' => ['required', 'string', Rule::in(['monthly', 'yearly', 'one-time'])],
+            'tax_rate' => ['sometimes', 'numeric', 'min:0', 'max:100'],
+            'tax_included' => ['sometimes', 'boolean'],
             'is_active' => ['required', 'boolean'],
             'display_order' => ['sometimes', 'numeric', 'min:0'],
             'features' => ['sometimes', 'array'],

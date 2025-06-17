@@ -59,7 +59,7 @@ return [
     'unique' => 'The :attribute has already been taken.',
     'url' => 'The :attribute format is invalid.',
     'uuid' => 'The :attribute must be a valid UUID.',
-    
+
     // Thông báo lỗi validation chung
     'invalid_uuid' => 'The :attribute must be a valid UUID.',
     'not_found' => 'One or more :attribute do not exist.',
@@ -77,5 +77,26 @@ return [
     'attributes' => [
         'new_password' => 'New password',
         'current_password' => 'Current password',
+
+        // order details attributes
+        'customer_id' => 'Customer',
+        'order_status' => 'Order Status',
+        'team_id' => 'Responsible Team',
+        'created_by' => 'Created By',
+        'contract_id' => 'Contract',
+        'opportunity_id' => 'Opportunity',
+
+        'order_details' => 'Order Details',
+        'order_details.*.service_package_id' => 'Service Package',
+        'order_details.*.package_code' => 'Package Code',
+        'order_details.*.package_name' => 'Package Name',
+        'order_details.*.base_price' => 'Base Price',
+        'order_details.*.quantity' => 'Quantity',
+        'order_details.*.currency' => 'Currency',
+        'order_details.*.start_date' => 'Start Date',
+        'order_details.*.end_date' => 'End Date',
+        'order_details.*.tax_rate' => 'Tax Rate',
+        'order_details.*.tax_included' => 'Tax Included',
+        'order_details.*.features' => 'Features',
     ],
 ];

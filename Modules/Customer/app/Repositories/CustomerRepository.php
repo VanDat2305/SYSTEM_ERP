@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Modules\Customer\Models\Customer;
 use Modules\Customer\Interfaces\CustomerRepositoryInterface;
+use Illuminate\Support\Facades\Auth;
 
 class CustomerRepository implements CustomerRepositoryInterface
 {
@@ -24,6 +25,22 @@ class CustomerRepository implements CustomerRepositoryInterface
     public function paginate(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         $query = $this->model->with(['contacts', 'representatives']);
+        $user = auth()->user();
+            // Kiểm tra quyền của người dùng
+        if ($user->can('customers.view')) {
+            // Admin có thể xem tất cả khách hàng
+        } elseif ($user->can('customers.view.team')) {
+            // Teamlead hoặc member có thể xem khách hàng trong nhóm của họ
+            $teamIds = $user->teams()->pluck('id'); // Lấy tất cả các nhóm mà người dùng tham gia
+            $query->whereIn('team_id', $teamIds);
+        } elseif ($user->can('customers.view.own')) {
+            // Người dùng chỉ có thể xem khách hàng mà họ đã tạo
+            $query->where('created_by', $user->id);
+        } else {
+            // Nếu người dùng không có quyền, trả về lỗi
+            throw new \Exception(__('customer::messages.forbidden_access'));
+        }
+
 
         if (!empty($filters['customer_type']) && strtolower($filters['customer_type']) !== 'all') {
             $query->where('customer_type', $filters['customer_type']);
@@ -46,6 +63,9 @@ class CustomerRepository implements CustomerRepositoryInterface
         }
         if (!empty($filters['query']) && !empty($filters['field'])) {
             $query->where($filters['field'], 'like', "%{$filters['query']}%");
+        }
+        if (!empty($filters['customer_code'])) {
+            $query->where('customer_code', 'like', "%{$filters['customer_code']}%");
         }
 
         if (!empty($filters['search'])) {
@@ -116,6 +136,10 @@ class CustomerRepository implements CustomerRepositoryInterface
         }
         
         return $customer->delete();
+    }
+    public function findByCustomerCode(string $customerCode): ?Customer
+    {
+        return $this->model->where('customer_code', $customerCode)->with(['contacts', 'representatives'])->first();
     }
 
     public function findByType(string $type): Collection
