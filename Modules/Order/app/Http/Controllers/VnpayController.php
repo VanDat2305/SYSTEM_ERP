@@ -41,6 +41,11 @@ class VnpayController extends Controller
 
         $txnRef = $order->order_code;
         $amount = (int)$order->total_amount * 100;
+        $ip = $request->header('x-forwarded-for') ?? $request->ip();
+        if ($ip === '127.0.0.1' || $ip === '::1') {
+            // Lấy IP public mạng thật của bạn, hoặc hardcode để test:
+            $ip = '171.241.108.110'; // Đổi thành IP thật hoặc 1 IP bất kỳ
+        }
 
         $inputData = [
             'vnp_Version'    => '2.1.0',
@@ -49,7 +54,7 @@ class VnpayController extends Controller
             'vnp_Amount'     => $amount,
             'vnp_CreateDate' => now()->format('YmdHis'),
             'vnp_CurrCode'   => 'VND',
-            'vnp_IpAddr'     => '152.42.214.115',//$request->ip(),
+            'vnp_IpAddr'     => $ip,
             'vnp_Locale'     => 'vn',
             'vnp_OrderInfo'  => 'Thanh toan don hang ' . $txnRef,
             'vnp_OrderType'  => 'billpayment',
