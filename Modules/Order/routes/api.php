@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Order\Http\Controllers\OrderController;
+use Modules\Order\Http\Controllers\PaymentController;
+use Modules\Order\Http\Controllers\VnpayController;
 
 /*
  *--------------------------------------------------------------------------
@@ -27,4 +29,16 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
     });
     Route::patch("orders-update-status", [OrderController::class, 'bulkStatusUpdate']);
     Route::patch("orders/{order}/status", [OrderController::class, 'updateStatus']);
+});
+Route::prefix('v1')->group(function () {
+
+    Route::middleware('basic_auth')->group(function (){
+        Route::post('/payment/initiate', [PaymentController::class, 'initiate']);
+        Route::get('/payment/methods', [PaymentController::class, 'methods']);
+        Route::get('/orders/code/{order_code}', [PaymentController::class, 'findByCode']);
+    });
+
+    Route::post('/payment/vnpay/initiate', [VnpayController::class, 'initiateVnpay']);
+    Route::get('/payment/vnpay/return', [VnpayController::class, 'handleReturn']);
+    Route::match(['get','post'], '/payment/vnpay/ipn', [VnpayController::class, 'handleIpn']);
 });

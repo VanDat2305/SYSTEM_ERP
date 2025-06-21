@@ -113,18 +113,33 @@ class OrderController extends Controller
         if (!$updated) {
             return response()->json(['message' => __("order::order.not_found")], 404);
         }
-
-        // Update or add new order details if provided
+        // Process order details
         if ($request->has('order_details')) {
+            $existingDetailIds = $this->orderService->getOrderDetails($id)->pluck('id')->toArray();
+            $requestDetailIds = [];
+
             foreach ($request->input('order_details') as $orderDetail) {
                 if (isset($orderDetail['id'])) {
-                    // If the order detail has an ID, update the existing detail
+                    // Update existing detail
                     $this->orderService->updateOrderDetail($orderDetail['id'], $orderDetail);
+                    $requestDetailIds[] = $orderDetail['id'];
                 } else {
-                    // If the order detail doesn't have an ID, add a new detail
-                    $this->orderService->addOrderDetails($id, [$orderDetail]);
+                        // Add new detail - sửa lại chỗ này
+                    $createdDetails = $this->orderService->addOrderDetails($id, [$orderDetail]);
+                    if (!empty($createdDetails) && isset($createdDetails[0])) {
+                        $requestDetailIds[] = $createdDetails[0]->id;
+                    }
                 }
             }
+
+            // Delete details not present in the request
+            $detailsToDelete = array_diff($existingDetailIds, $requestDetailIds);
+            if (!empty($detailsToDelete)) {
+                $this->orderService->deleteOrderDetails($detailsToDelete);
+            }
+        } else {
+            // If no order_details in request, delete all existing details
+            $this->orderService->deleteAllOrderDetails($id);
         }
 
         return response()->json(['message' => __("order::order.updated_successfully")]);
@@ -177,7 +192,7 @@ class OrderController extends Controller
             'base_price' => 'sometimes|numeric',
             'tax_rate' => 'nullable|numeric',
             'tax_included' => 'sometimes|boolean',
-            'is_active' => 'sometimes|boolean',
+            // 'is_active' => 'sometimes|boolean',
         ]);
 
         $updated = $this->orderService->updateOrderDetail($id, $validated);
@@ -204,9 +219,10 @@ class OrderController extends Controller
         $validated = $request->validate([
             'order_ids' => 'required|array',
             'status' => 'required|string|max:20',
+            'reason' => 'nullable|string|max:255',
         ]);
 
-        $updatedCount = $this->orderService->bulkStatusUpdate($validated['order_ids'], $validated['status']);
+        $updatedCount = $this->orderService->bulkStatusUpdate($validated['order_ids'], $validated);
 
         return response()->json(['message' => __("order::order.bulk_status_updated", ['count' => $updatedCount])]);
     }
@@ -214,9 +230,10 @@ class OrderController extends Controller
     {
         $validated = $request->validate([
             'status' => 'required|string|max:20',
+            'reason' => 'nullable|string|max:255',
         ]);
 
-        $updated = $this->orderService->updateOrderStatus($orderId, $validated['status']);
+        $updated = $this->orderService->updateOrderStatus($orderId, $validated);
 
         if (!$updated) {
             return response()->json(['message' => __("order::order.not_found")], 404);

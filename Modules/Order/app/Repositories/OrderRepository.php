@@ -33,7 +33,7 @@ class OrderRepository implements OrderRepositoryInterface
     {
         $query = $this->model->with([
             // Load quan hệ liên quan nếu cần
-            'customer.contacts', 'details.features', 'team'
+            'customer.contacts', 'details.features', 'team', 'creator:id,name',
         ]);
 
         // Tìm kiếm theo order_code, customer_id, hoặc lọc theo trường cụ thể

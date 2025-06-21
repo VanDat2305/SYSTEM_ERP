@@ -2,6 +2,7 @@
 
 namespace Modules\Order\Services;
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Order\Interfaces\OrderRepositoryInterface;
@@ -54,12 +55,12 @@ class OrderService
             throw new \Exception('Customer not found');
         }
         if ($customer->status == 'inactive') {
-           throw new \Exception(__('customer::messages.customer_not_inactive'));
+            throw new \Exception(__('customer::messages.customer_not_inactive'));
         }
         if (
             Order::where('customer_id', $orderData['customer_id'])
-                ->whereIn('order_status', ['draft', 'pending', 'approved', 'processing'])
-                ->exists()
+            ->whereIn('order_status', ['draft', 'pending', 'approved', 'processing'])
+            ->exists()
         ) {
             throw new \Exception(__('customer::messages.customer_has_active_order'));
         }
@@ -70,7 +71,7 @@ class OrderService
                 $orderData['order_code'] = $this->generateOrderCode();
             }
             if (!isset($orderData['created_by'])) {
-                $orderData['created_by'] = auth()->id() ?? null; 
+                $orderData['created_by'] = auth()->id() ?? null;
             }
 
             $order = $this->orderRepository->create($orderData);
@@ -79,7 +80,7 @@ class OrderService
                 $this->addOrderDetails($order->id, $orderDetailsData);
             }
 
-            
+
             if ($customer && $customer->status == 'new' || $customer->status == 'unqualified') {
                 $customer->status = 'in_progress';
                 $customer->save();
@@ -129,7 +130,7 @@ class OrderService
                 $detailData['tax_amount'] = 0;
                 $detailData['total_with_tax'] = $detailData['total_price'];
             }
-
+            $detailData['is_active'] = false;
             // Create the order detail
             $orderDetail = $this->orderDetailRepository->create($detailData);
             $createdDetails[] = $orderDetail;
@@ -160,6 +161,7 @@ class OrderService
 
     public function updateOrderDetail(string $id, array $detailData)
     {
+        unset($detailData['servicePackageOptions']);
         // First, update the order detail itself
         $updated = $this->orderDetailRepository->update($id, $detailData);
 
@@ -178,6 +180,31 @@ class OrderService
         }
 
         return $updated;
+    }
+
+    public function deleteOrderDetails(array $ids)
+    {
+        $deletedCount = 0;
+
+        foreach ($ids as $id) {
+            if ($this->deleteOrderDetail($id)) {
+                $deletedCount++;
+            }
+        }
+
+        return $deletedCount;
+    }
+    public function deleteAllOrderDetails(string $orderId)
+    {
+        // First, get all details for the order
+        $details = $this->orderDetailRepository->getDetailsByOrder($orderId);
+
+        // Delete each detail and recalculate order total
+        foreach ($details as $detail) {
+            $this->deleteOrderDetail($detail->id);
+        }
+
+        return true;
     }
 
 
@@ -202,8 +229,8 @@ class OrderService
     public function addPackageFeatures(string $orderDetailId, array $featuresData)
     {
         $createdFeatures = [];
-
         foreach ($featuresData as $featureData) {
+            $featureData['id'] = Str::uuid()->toString();
             $featureData['order_detail_id'] = $orderDetailId;
             $createdFeatures[] = $this->orderPackageFeatureRepository->create($featureData);
         }
@@ -245,9 +272,9 @@ class OrderService
     }
 
     // Additional business logic methods
-    public function changeOrderStatus(string $orderId, string $status)
+    public function changeOrderStatus(string $orderId, array $data)
     {
-        return $this->orderRepository->update($orderId, ['order_status' => $status]);
+        return $this->orderRepository->update($orderId, $data);
     }
 
     public function getOrdersByCustomer(string $customerId)
@@ -272,47 +299,89 @@ class OrderService
 
         return $code;
     }
-    public function bulkStatusUpdate(array $orderIds, string $status): int
+    /**
+     * Update status for multiple orders in bulk
+     * 
+     * @param array $orderIds Array of order IDs to update
+     * @param array $data Update data including new status
+     * @return int Number of successfully updated orders
+     * @throws InvalidArgumentException
+     */
+    public function bulkStatusUpdate(array $orderIds, array $data): int
     {
-        // validate status folowing the order status rules
-        $validStatuses = ['draft', 'pending', 'approved', 'processing', 'completed', 'cancelled'];
-        if (!in_array($status, $validStatuses)) {
-            throw new \InvalidArgumentException('Trạng thái đơn hàng không hợp lệ.');
-        }
-        // validate order ids
-        if (empty($orderIds) || !is_array($orderIds)) {
-            throw new \InvalidArgumentException('Danh sách ID đơn hàng không hợp lệ.');
-        }
+        $this->validateStatus($data['status'] ?? '');
+        $this->validateOrderIds($orderIds);
 
         $updatedCount = 0;
 
         foreach ($orderIds as $orderId) {
-            $order = $this->getOrderById($orderId);
-            if ($order) {
-                $this->changeOrderStatus($orderId, $status);
-                // update reason if status is cancelled
-                if ($status === 'cancelled' && isset($order->reason)) {
-                    $this->orderRepository->update($orderId, ['reason' => $order->reason]);
-                }
+            if ($this->getOrderById($orderId)) {
+                $this->updateOrderStatus($orderId, $data);
                 $updatedCount++;
             }
         }
 
         return $updatedCount;
     }
-    public function updateOrderStatus(string $orderId, string $status)
+
+    /**
+     * Update status for a single order
+     * 
+     * @param string $orderId Order ID to update
+     * @param array $data Update data including new status
+     * @return mixed Result of the status change operation
+     * @throws InvalidArgumentException
+     */
+    public function updateOrderStatus(string $orderId, array $data)
     {
-        // validate status following the order status rules
+        $this->validateStatus($data['status'] ?? '');
+
+        $updateData = $this->prepareUpdateData($data);
+        return $this->changeOrderStatus($orderId, $updateData);
+    }
+
+    /**
+     * Validate order status
+     * 
+     * @param string $status Status to validate
+     * @throws InvalidArgumentException
+     */
+    private function validateStatus(string $status): void
+    {
         $validStatuses = ['draft', 'pending', 'approved', 'processing', 'completed', 'cancelled'];
+
         if (!in_array($status, $validStatuses)) {
             throw new \InvalidArgumentException('Trạng thái đơn hàng không hợp lệ.');
         }
-        // update reason if status is cancelled
-        $order = $this->getOrderById($orderId);
-        if ($status === 'cancelled' && isset($order->reason)) {
-            $this->orderRepository->update($orderId, ['reason' => $order->reason]);
-        }
+    }
 
-        return $this->changeOrderStatus($orderId, $status);
+    /**
+     * Validate order IDs array
+     * 
+     * @param array $orderIds Order IDs to validate
+     * @throws InvalidArgumentException
+     */
+    private function validateOrderIds(array $orderIds): void
+    {
+        if (empty($orderIds)) {
+            throw new \InvalidArgumentException('Danh sách ID đơn hàng không hợp lệ.');
+        }
+    }
+
+    /**
+     * Prepare update data with proper reason_cancel field
+     * 
+     * @param array $data Original update data
+     * @return array Prepared update data
+     */
+    private function prepareUpdateData(array $data): array
+    {
+        if ($data['status'] === 'cancelled' && isset($data['reason'])) {
+            $updateData['reason_cancel'] = $data['reason'];
+        } else {
+            $updateData['reason_cancel'] = null;
+        }
+        $updateData['order_status'] = $data['status'] ?? 'draft';
+        return $updateData;
     }
 }
