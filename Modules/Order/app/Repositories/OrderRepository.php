@@ -72,7 +72,21 @@ class OrderRepository implements OrderRepositoryInterface
         }
 
         if (!empty($filters['query']) && !empty($filters['field'])) {
-            $query->where($filters['field'], 'like', "%{$filters['query']}%");
+            $allowedFields = ['order_code', 'customer.customer_code', 'customer.full_name']; // Các field cho phép
+            
+            if (!in_array($filters['field'], $allowedFields)) {
+                throw new \InvalidArgumentException("Trường {$filters['field']} không hợp lệ cho tìm kiếm.");
+            }
+
+            if (str_contains($filters['field'], '.')) {
+                [$relation, $relationField] = explode('.', $filters['field'], 2);
+                
+                $query->whereHas($relation, function($q) use ($relationField, $filters) {
+                    $q->where($relationField, 'like', "%{$filters['query']}%");
+                });
+            } else {
+                $query->where($filters['field'], 'like', "%{$filters['query']}%");
+            }
         }
 
         // Lọc theo tổng tiền (total_amount) khoảng giá

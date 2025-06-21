@@ -10,6 +10,7 @@ return [
     'status_changed' => 'Order status changed successfully.',
     'updated_successfully' => 'Order updated successfully.',
     'deleted_successfully' => 'Order deleted successfully.',
+    'bulk_status_updated' => 'Bulk status update successful. :count orders updated.',
 
     // Validation messages
     'validation' => [

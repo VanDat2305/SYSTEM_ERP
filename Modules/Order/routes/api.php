@@ -25,4 +25,6 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
         Route::put('', [OrderController::class, 'updateOrderDetail']);
         Route::delete('', [OrderController::class, 'deleteOrderDetail']);
     });
+    Route::patch("orders-update-status", [OrderController::class, 'bulkStatusUpdate']);
+    Route::patch("orders/{order}/status", [OrderController::class, 'updateStatus']);
 });

@@ -7,6 +7,8 @@
     'customer_deleted' => 'Xóa khách hàng thành công',
     'customer_status_updated' => 'Cập nhật trạng thái khách hàng thành công',
     'customer_not_found' => 'Không tìm thấy khách hàng',
+    'customer_not_inactive' => 'Khách hàng không ở trạng thái không hoạt động. Vui lòng kiểm tra lại trạng thái khách hàng.',
+    'customer_has_active_order' => 'Khách hàng có đơn hàng chưa hoàn thành. Vui lòng kiểm tra lại trạng thái khách hàng.',
     
     'error_retrieving_customers' => 'Lỗi khi lấy danh sách khách hàng',
     'error_retrieving_customer' => 'Lỗi khi lấy thông tin khách hàng',

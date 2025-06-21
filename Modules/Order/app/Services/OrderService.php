@@ -8,6 +8,8 @@ use Modules\Order\Interfaces\OrderRepositoryInterface;
 use Modules\Order\Interfaces\OrderDetailRepositoryInterface;
 use Modules\Order\Interfaces\OrderPackageFeatureRepositoryInterface;
 use Illuminate\Support\Str;
+use Modules\Customer\Models\Customer;
+use Modules\Order\Models\Order;
 
 class OrderService
 {
@@ -47,16 +49,40 @@ class OrderService
 
     public function createOrder(array $orderData, array $orderDetailsData = [])
     {
-        return DB::transaction(function () use ($orderData, $orderDetailsData) {
+        $customer = Customer::find($orderData['customer_id']);
+        if (!$customer) {
+            throw new \Exception('Customer not found');
+        }
+        if ($customer->status == 'inactive') {
+           throw new \Exception(__('customer::messages.customer_not_inactive'));
+        }
+        if (
+            Order::where('customer_id', $orderData['customer_id'])
+                ->whereIn('order_status', ['draft', 'pending', 'approved', 'processing'])
+                ->exists()
+        ) {
+            throw new \Exception(__('customer::messages.customer_has_active_order'));
+        }
+
+        return DB::transaction(function () use ($orderData, $orderDetailsData, $customer) {
             // Generate order code if not provided
             if (!isset($orderData['order_code'])) {
                 $orderData['order_code'] = $this->generateOrderCode();
+            }
+            if (!isset($orderData['created_by'])) {
+                $orderData['created_by'] = auth()->id() ?? null; 
             }
 
             $order = $this->orderRepository->create($orderData);
 
             if (!empty($orderDetailsData)) {
                 $this->addOrderDetails($order->id, $orderDetailsData);
+            }
+
+            
+            if ($customer && $customer->status == 'new' || $customer->status == 'unqualified') {
+                $customer->status = 'in_progress';
+                $customer->save();
             }
 
             return $order;
@@ -245,5 +271,48 @@ class OrderService
         } while ($exists);
 
         return $code;
+    }
+    public function bulkStatusUpdate(array $orderIds, string $status): int
+    {
+        // validate status folowing the order status rules
+        $validStatuses = ['draft', 'pending', 'approved', 'processing', 'completed', 'cancelled'];
+        if (!in_array($status, $validStatuses)) {
+            throw new \InvalidArgumentException('Trạng thái đơn hàng không hợp lệ.');
+        }
+        // validate order ids
+        if (empty($orderIds) || !is_array($orderIds)) {
+            throw new \InvalidArgumentException('Danh sách ID đơn hàng không hợp lệ.');
+        }
+
+        $updatedCount = 0;
+
+        foreach ($orderIds as $orderId) {
+            $order = $this->getOrderById($orderId);
+            if ($order) {
+                $this->changeOrderStatus($orderId, $status);
+                // update reason if status is cancelled
+                if ($status === 'cancelled' && isset($order->reason)) {
+                    $this->orderRepository->update($orderId, ['reason' => $order->reason]);
+                }
+                $updatedCount++;
+            }
+        }
+
+        return $updatedCount;
+    }
+    public function updateOrderStatus(string $orderId, string $status)
+    {
+        // validate status following the order status rules
+        $validStatuses = ['draft', 'pending', 'approved', 'processing', 'completed', 'cancelled'];
+        if (!in_array($status, $validStatuses)) {
+            throw new \InvalidArgumentException('Trạng thái đơn hàng không hợp lệ.');
+        }
+        // update reason if status is cancelled
+        $order = $this->getOrderById($orderId);
+        if ($status === 'cancelled' && isset($order->reason)) {
+            $this->orderRepository->update($orderId, ['reason' => $order->reason]);
+        }
+
+        return $this->changeOrderStatus($orderId, $status);
     }
 }

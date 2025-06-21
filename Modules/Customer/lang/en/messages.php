@@ -7,6 +7,8 @@ return [
     'customer_deleted' => 'Customer deleted successfully',
     'customer_status_updated' => 'Customer status updated successfully',
     'customer_not_found' => 'Customer not found',
+    'customer_not_inactive' => 'Customer is not inactive. Please check the customer status.',
+    'customer_has_active_order' => 'Customer has an active order. Please check the customer status.',
     
     'error_retrieving_customers' => 'Error retrieving customers',
     'error_retrieving_customer' => 'Error retrieving customer',

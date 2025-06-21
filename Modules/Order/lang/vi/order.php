@@ -9,6 +9,7 @@ return [
         'status_changed' => 'Trạng thái đơn hàng đã được thay đổi.',
         'updated_successfully' => 'Cập nhật thành công.',
         'deleted_successfully' => 'Xóa thành công.',
+        'bulk_status_updated' => 'Cập nhật trạng thái hàng loạt thành công. :count đơn hàng đã được cập nhật.',
 
         // Validation messages
         'validation' => [

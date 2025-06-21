@@ -199,4 +199,29 @@ class OrderController extends Controller
 
         return response()->json(['message' => __("order::order_details.deleted")]);
     }
+    public function bulkStatusUpdate(Request $request)
+    {
+        $validated = $request->validate([
+            'order_ids' => 'required|array',
+            'status' => 'required|string|max:20',
+        ]);
+
+        $updatedCount = $this->orderService->bulkStatusUpdate($validated['order_ids'], $validated['status']);
+
+        return response()->json(['message' => __("order::order.bulk_status_updated", ['count' => $updatedCount])]);
+    }
+    public function updateStatus(Request $request, string $orderId)
+    {
+        $validated = $request->validate([
+            'status' => 'required|string|max:20',
+        ]);
+
+        $updated = $this->orderService->updateOrderStatus($orderId, $validated['status']);
+
+        if (!$updated) {
+            return response()->json(['message' => __("order::order.not_found")], 404);
+        }
+
+        return response()->json(['message' => __("order::order.status_updated")]);
+    }
 }
