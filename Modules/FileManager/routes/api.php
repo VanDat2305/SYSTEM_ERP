@@ -31,3 +31,5 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\CustomSanctumAuth::class
 });
 
 Route::prefix('v1')->get('/file/{id}', [FileController::class, 'serve']);
+Route::prefix('v1')->get('/convert-to-pdf-base64/{file_id}', [FileController::class, 'convertToPdfBase64']);
+
