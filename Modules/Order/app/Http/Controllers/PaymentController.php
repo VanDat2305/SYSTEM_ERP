@@ -7,7 +7,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use Modules\Order\Models\App\Models\Payment;
+use Modules\Order\Models\Payment;
 use Modules\Order\Models\Order;
 
 class PaymentController extends Controller
@@ -57,8 +57,15 @@ class PaymentController extends Controller
     }
     public function findByCode(string $order_code)
     {
-        $order = Order::with([])->where('order_code', $order_code)->select(
-            'id', 'order_code', 'customer_id', 'total_amount', 'payment_status', 'created_at'
+        $order = Order::with([])->where('order_code', $order_code)
+        ->whereNotIn('order_status', ['cancelled', 'draft', 'pending'])
+        ->select(
+            'id',
+            'order_code',
+            'customer_id',
+            'total_amount',
+            'payment_status',
+            'created_at'
         )->first();
 
         if (!$order) {

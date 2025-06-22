@@ -1,13 +1,12 @@
 <?php
 
-
 namespace Modules\Order\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use Modules\Order\Models\App\Models\Payment;
+use Modules\Order\Models\Payment;
 use Modules\Order\Models\Order;
 
 class VnpayController extends Controller
@@ -28,13 +27,15 @@ class VnpayController extends Controller
         $this->vnpIpnUrl = config('services.vnpay.ipn_url');
     }
 
-    // 1️⃣ API tạo link thanh toán VNPAY (trả về JSON)
     public function initiateVnpay(Request $request)
     {
         $request->validate([
             'order_code' => 'required|string',
         ]);
-        $order = Order::where('order_code', $request->order_code)->first();
+        $order = Order::where('order_code', $request->order_code)
+            ->where('payment_status', '!=', 'paid')
+            ->whereNotIN('order_status', ['cancelled', 'draft', 'pending'])
+            ->first();
         if (!$order) {
             return response()->json(['message' => 'Không tìm thấy đơn hàng'], 404);
         }
@@ -43,44 +44,48 @@ class VnpayController extends Controller
         $amount = (int)$order->total_amount * 100;
         $ip = $request->header('x-forwarded-for') ?? $request->ip();
         if ($ip === '127.0.0.1' || $ip === '::1') {
-            // Lấy IP public mạng thật của bạn, hoặc hardcode để test:
-            $ip = '171.241.108.110'; // Đổi thành IP thật hoặc 1 IP bất kỳ
+            $ip = '171.241.108.110'; // Đổi thành IP public thật khi test
         }
 
         $inputData = [
             'vnp_Version'    => '2.1.0',
             'vnp_Command'    => 'pay',
-            'vnp_TmnCode'    => config('services.vnpay.tmncode'),   // dùng config, tránh hardcode!
+            'vnp_TmnCode'    => $this->vnpTmnCode,
             'vnp_Amount'     => $amount,
             'vnp_CreateDate' => now()->format('YmdHis'),
             'vnp_CurrCode'   => 'VND',
             'vnp_IpAddr'     => $ip,
             'vnp_Locale'     => 'vn',
-            'vnp_OrderInfo'  => 'Thanh toan don hang ' . $txnRef,
+            'vnp_OrderInfo'  => 'Thanh toán đơn hàng ' . $txnRef,
             'vnp_OrderType'  => 'billpayment',
-            'vnp_ReturnUrl'  => config('services.vnpay.return_url'), // config chuẩn
+            'vnp_ReturnUrl'  => $this->vnpReturnUrl,
             'vnp_TxnRef'     => $txnRef,
-            'vnp_IpnUrl'     => config('services.vnpay.ipn_url'),
         ];
 
+        if ($request->filled('bank_code')) {
+            $inputData['vnp_BankCode'] = $request->bank_code;
+        }
+
+  
         ksort($inputData);
 
-        // Build hash string KHÔNG encode
-        $hashDataArr = [];
+        // Build hashData (urlencode từng key và value)
+        $hashData = '';
+        $query = '';
+        $i = 0;
         foreach ($inputData as $key => $value) {
-            $hashDataArr[] = $key . '=' . $value;
+            $item = urlencode($key) . "=" . urlencode($value);
+            $hashData .= ($i == 0) ? $item : '&' . $item;
+            $query .= $item . '&';
+            $i++;
         }
-        $hashData = implode('&', $hashDataArr);
 
-        // Build query string (để redirect), ĐƯỢC phép urlencode
-        $queryArr = [];
-        foreach ($inputData as $key => $value) {
-            $queryArr[] = urlencode($key) . '=' . urlencode($value);
-        }
-        $query = implode('&', $queryArr);
+        // Sinh chữ ký
+        $vnpSecureHash = hash_hmac('sha512', $hashData, $this->vnpHashSecret);
 
-        $vnpSecureHash = hash_hmac('sha512', $hashData, config('services.vnpay.hash_secret'));
-        $paymentUrl = config('services.vnpay.url') . '?' . $query . '&vnp_SecureHash=' . $vnpSecureHash;
+        // Build URL
+        $paymentUrl = $this->vnpUrl . '?' . $query . 'vnp_SecureHash=' . $vnpSecureHash;
+
         Log::info('VNPAY_DEBUG', [
             'inputData' => $inputData,
             'hashData'  => $hashData,
@@ -93,13 +98,19 @@ class VnpayController extends Controller
         ]);
     }
 
-
-    // 2️⃣ Xử lý khi frontend SPA nhận return, gửi các query params lên để xác thực lại (nếu muốn)
     public function handleReturn(Request $request)
     {
         $isValid = $this->validateVnpSignature($request);
         $order = Order::where('order_code', $request->vnp_TxnRef)->first();
+        $frontendUrl = env('APP_FRONTEND_URL', 'http://localhost:5173') . '/payment/vnpay-result';
+        
+        $query = http_build_query([
+            'order_code' => $request->vnp_TxnRef,
+            'status' => ($isValid && $request->vnp_ResponseCode == '00' && $order) ? 'success' : 'fail',
+            'amount' => isset($request->vnp_Amount) ? ($request->vnp_Amount / 100) : null
+        ]);
 
+        // update order status if valid
         if ($isValid && $request->vnp_ResponseCode == '00' && $order) {
             if ($order->payment_status !== 'paid') {
                 $order->update([
@@ -118,12 +129,20 @@ class VnpayController extends Controller
                     'raw_response' => json_encode($request->all())
                 ]);
             }
-            return response()->json(['success' => true, 'message' => 'Thanh toán thành công!']);
         }
-        return response()->json(['success' => false, 'message' => 'Thanh toán thất bại hoặc sai chữ ký'], 400);
+
+        // Log để debug với thông tin chi tiết
+        Log::info('VNPAY_RETURN_DEBUG', [
+            'isValid' => $isValid,
+            'responseCode' => $request->vnp_ResponseCode,
+            'order_exists' => !!$order,
+            'receivedHash' => $request->vnp_SecureHash,
+            'allParams' => $request->all()
+        ]);
+
+        return redirect()->to($frontendUrl . '?' . $query);
     }
 
-    // 3️⃣ Nhận IPN từ VNPAY (server backend)
     public function handleIpn(Request $request)
     {
         $isValid = $this->validateVnpSignature($request);
@@ -154,15 +173,40 @@ class VnpayController extends Controller
 
     private function validateVnpSignature(Request $request)
     {
-        $inputData = $request->except('vnp_SecureHash', 'vnp_SecureHashType');
+        // Loại bỏ vnp_SecureHash và vnp_SecureHashType
+        $inputData = $request->except(['vnp_SecureHash', 'vnp_SecureHashType']);
+        
+        // Loại bỏ các tham số rỗng
+        $inputData = array_filter($inputData, function($value) {
+            return $value !== null && $value !== '';
+        });
+        
+        // Sắp xếp theo key tăng dần
         ksort($inputData);
+        
+        // Tạo hash data theo chuẩn VNPAY - URL encode như khi gửi request
         $hashData = '';
+        $i = 0;
         foreach ($inputData as $key => $value) {
-            $hashData .= $key . '=' . $value . '&';
+            // VNPAY yêu cầu URL encode cả key và value khi validate
+            $item = urlencode($key) . "=" . urlencode($value);
+            $hashData .= ($i == 0) ? $item : '&' . $item;
+            $i++;
         }
-        $hashData = rtrim($hashData, '&');
+        
+        // Tạo secure hash
         $secureHash = hash_hmac('sha512', $hashData, $this->vnpHashSecret);
-
+        
+        // Log để debug chi tiết
+        Log::info('VNPAY_VALIDATE_DEBUG', [
+            'inputData' => $inputData,
+            'hashData' => $hashData,
+            'calculatedHash' => $secureHash,
+            'receivedHash' => $request->vnp_SecureHash,
+            'isValid' => $secureHash === $request->vnp_SecureHash,
+            'hashSecret' => substr($this->vnpHashSecret, 0, 5) . '***' // Chỉ log 5 ký tự đầu để bảo mật
+        ]);
+        
         return $secureHash === $request->vnp_SecureHash;
     }
 }

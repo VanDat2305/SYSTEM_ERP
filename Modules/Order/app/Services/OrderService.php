@@ -273,8 +273,9 @@ class OrderService
 
     // Additional business logic methods
     public function changeOrderStatus(string $orderId, array $data)
-    {
-        return $this->orderRepository->update($orderId, $data);
+    {   $change = $this->orderRepository->update($orderId, $data);
+        $this->updateStatusCustomer($orderId, $data['order_status'] ?? 'draft');
+        return $change;
     }
 
     public function getOrdersByCustomer(string $customerId)
@@ -317,6 +318,7 @@ class OrderService
         foreach ($orderIds as $orderId) {
             if ($this->getOrderById($orderId)) {
                 $this->updateOrderStatus($orderId, $data);
+                $
                 $updatedCount++;
             }
         }
@@ -383,5 +385,27 @@ class OrderService
         }
         $updateData['order_status'] = $data['status'] ?? 'draft';
         return $updateData;
+    }
+    public function updateStatusCustomer(string $orderId, string $status): bool
+    {
+        $order = $this->getOrderById($orderId);
+        if (!$order) {
+            throw new \Exception(__('order::messages.order_not_found'));
+        }
+
+        // Update customer status based on order status
+        $customer = Customer::find($order->customer_id);
+        if ($customer) {
+            switch ($status) {
+                case 'completed':
+                    $customer->status = 'converted';
+                    break;
+                default:
+                    break;
+            }
+            return $customer->save();
+        }
+
+        return false;
     }
 }
