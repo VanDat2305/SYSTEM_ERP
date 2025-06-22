@@ -108,7 +108,7 @@ class FileController extends Controller
     public function convertToPdfBase64($fileId)
     {
         // 1. Lấy link file docx từ API file manager
-        $remoteUrl = env('APP_URL') . "/v1/file/{$fileId}";
+        $remoteUrl = config("app.url") . "/v1/file/{$fileId}";
 
         // 2. Tải file docx về local
         $tmpDir = storage_path('app/tmp');

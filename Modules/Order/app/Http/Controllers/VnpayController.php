@@ -102,8 +102,7 @@ class VnpayController extends Controller
     {
         $isValid = $this->validateVnpSignature($request);
         $order = Order::where('order_code', $request->vnp_TxnRef)->first();
-        $frontendUrl = env('APP_FRONTEND_URL', 'http://localhost:5173') . '/payment/vnpay-result';
-        
+        $frontendUrl = config("app.frontend_url") . '/payment/vnpay-result';
         $query = http_build_query([
             'order_code' => $request->vnp_TxnRef,
             'status' => ($isValid && $request->vnp_ResponseCode == '00' && $order) ? 'success' : 'fail',
