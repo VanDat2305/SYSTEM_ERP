@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Modules\Order\Models\Payment;
 use Modules\Order\Models\Order;
+use Modules\Order\Services\InvoiceService;
 
 class VnpayController extends Controller
 {
@@ -164,6 +165,9 @@ class VnpayController extends Controller
                     'payment_date' => now(),
                     'raw_response' => json_encode($request->all())
                 ]);
+                //gui mail hoa don 
+                $invoiceService = app(InvoiceService::class);
+                $invoiceService->sendInvoiceToCustomer($order);
             }
             return response('{"RspCode":"00","Message":"Success"}');
         }

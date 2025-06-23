@@ -136,4 +136,13 @@ class FolderService
             throw new \Exception("Failed to retrieve folder tree: " . $e->getMessage());
         }
     }
+    public function getIdByPath(string $path): ?string
+    {
+        try {
+            $folder = $this->folderRepository->findByPath($path);
+            return $folder ? $folder->id : null;
+        } catch (\Exception $e) {
+            throw new \Exception("Failed to retrieve folder ID by path: " . $e->getMessage());
+        }
+    }
 }

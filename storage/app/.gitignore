@@ -1,4 +1,6 @@
-*
+/modules/
 !private/
 !public/
 !.gitignore
+
+!contracts/templates/

@@ -16,7 +16,9 @@ class Order extends Model
     protected $fillable = [
         'id', 'order_code', 'customer_id', 'opportunity_id', 'order_status',
         'currency', 'total_amount', 'billing_cycle', 'contract_id', 'team_id', 'created_by',
-        'reason_cancel', 'payment_status', 'payment_method', 'paid_at'
+        'reason_cancel', 'payment_status', 'payment_method', 'paid_at',
+        'invoice_file_id', 'invoice_exported_at', 'invoice_number', 'invoice_status',
+        'contract_file_id', 'contract_date', 'contract_number', 'contract_status'
     ];
 
     protected static function boot()

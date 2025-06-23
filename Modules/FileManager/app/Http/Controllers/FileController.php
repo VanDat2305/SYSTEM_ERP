@@ -117,7 +117,10 @@ class FileController extends Controller
         file_put_contents($tmpDocx, file_get_contents($remoteUrl));
 
         // 3. Convert bằng LibreOffice CLI
-        $command = "libreoffice --headless --convert-to pdf --outdir " . escapeshellarg($tmpDir) . " " . escapeshellarg($tmpDocx);
+        $soffice = '/usr/bin/soffice'; // đúng đường dẫn thực tế bạn tìm được!
+        $envHome = 'HOME=/var/www/.libreoffice';
+
+        $command = $envHome . " $soffice --headless --convert-to pdf --outdir " . escapeshellarg($tmpDir) . " " . escapeshellarg($tmpDocx);
         exec($command);
 
         // 4. Tìm file PDF kết quả

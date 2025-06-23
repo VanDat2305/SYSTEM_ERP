@@ -160,4 +160,51 @@ class FileService
             throw new Exception("Failed to get recent files: " . $e->getMessage());
         }
     }
+    public function uploadFromContent(
+        string $content, 
+        string $originalName, 
+        ?string $folderId = null, 
+        ?string $mimeType = 'application/octet-stream'
+    ): File {
+        try {
+            $folder = $folderId ? app(FolderRepositoryInterface::class)->find($folderId) : null;
+            $path = $folder ? $folder->path : 'uploads';
+
+            // Đảm bảo tên file duy nhất
+            $extension = pathinfo($originalName, PATHINFO_EXTENSION) ?: 'bin';
+            $fileName = Str::random(20) . '_' . time() . '.' . $extension;
+            $fullPath = $path . '/' . $fileName;
+
+            // Lưu file vào storage
+            Storage::disk('spaces')->put($fullPath, $content);
+
+            // Nếu không truyền mimeType thì thử đoán theo tên file
+            if (!$mimeType || $mimeType === 'application/octet-stream') {
+                $mimeType = \Illuminate\Support\Facades\File::mimeType(storage_path('app/' . $fullPath)) ?: 'application/octet-stream';
+            }
+
+            // Tự động category
+            $category = 'document';
+            if (str_starts_with($mimeType, 'image/')) $category = 'image';
+            if (str_starts_with($mimeType, 'video/')) $category = 'video';
+            if (str_starts_with($mimeType, 'audio/')) $category = 'audio';
+
+            return $this->fileRepository->create([
+                'id' => Str::uuid(),
+                'name' => $fileName,
+                'original_name' => $originalName,
+                'path' => $fullPath,
+                'url' => Storage::disk('spaces')->url($fullPath),
+                'mime_type' => $mimeType,
+                'size' => strlen($content),
+                'folder_id' => $folderId,
+                'category' => $category,
+                'user_id' => auth()->id(),
+            ]);
+        } catch (Exception $e) {
+            Log::error("File upload from content failed: " . $e->getMessage());
+            throw new Exception("Failed to upload file from content: " . $e->getMessage());
+        }
+    }
+
 }

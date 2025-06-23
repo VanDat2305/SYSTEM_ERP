@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Order\Http\Controllers\ContractController;
+use Modules\Order\Http\Controllers\InvoiceController;
 use Modules\Order\Http\Controllers\OrderController;
 use Modules\Order\Http\Controllers\PaymentController;
 use Modules\Order\Http\Controllers\VnpayController;
@@ -29,6 +31,9 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
     });
     Route::patch("orders-update-status", [OrderController::class, 'bulkStatusUpdate']);
     Route::patch("orders/{order}/status", [OrderController::class, 'updateStatus']);
+    Route::post('/orders/{order}/export-invoice', [InvoiceController::class, 'export'])->middleware('can:orders.export-invoice');
+    Route::post('/orders/{order}/resend-invoice', [InvoiceController::class, 'resendInvoice'])->middleware('can:orders.resend-invoice');
+    Route::post('/orders/{order}/export-contract', [ContractController::class, 'exportContract']);//->middleware('can:orders.export-contract');
 });
 Route::prefix('v1')->group(function () {
 
