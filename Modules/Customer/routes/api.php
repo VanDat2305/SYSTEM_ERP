@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Customer\Http\Controllers\CustomerController;
 use Modules\Customer\Http\Controllers\CustomerContactController;
+use Modules\Customer\Http\Controllers\CustomerLogController;
 use Modules\Customer\Http\Controllers\CustomerRepresentativeController;
 /*
  *--------------------------------------------------------------------------
@@ -41,5 +42,12 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
         Route::post('/representatives', [CustomerRepresentativeController::class, 'store'])->middleware('permission:customers.representative.manage');
         Route::put('/representatives/{id}', [CustomerRepresentativeController::class, 'update'])->middleware('permission:customers.representative.manage');
         Route::delete('/representatives/{id}', [CustomerRepresentativeController::class, 'destroy'])->middleware('permission:customers.representative.manage');
+        Route::post('/{customer}/logs/note', [CustomerLogController::class, 'store']);
+        Route::get('/{customer}/logs', [CustomerLogController::class, 'index']);
+
+        Route::post('/mark-unqualified', [CustomerController::class, 'markUnqualifiedBulk']);
+        Route::post('/mark-inactive', [CustomerController::class, 'markInactiveBulk']);
+        Route::post('/restore', [CustomerController::class, 'restoreBulk']);
+
     });
 });

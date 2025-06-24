@@ -17,15 +17,18 @@ class CustomerService
     protected CustomerRepositoryInterface $customerRepository;
     protected CustomerContactService $contactService;
     protected CustomerRepresentativeService $representativeService;
+    protected CustomerLogService $customerLogService;
 
     public function __construct(
         CustomerRepositoryInterface $customerRepository,
         CustomerContactService $contactService,
-        CustomerRepresentativeService $representativeService
+        CustomerRepresentativeService $representativeService,
+        CustomerLogService $customerLogService
     ) {
         $this->customerRepository = $customerRepository;
         $this->contactService = $contactService;
         $this->representativeService = $representativeService;
+        $this->customerLogService = $customerLogService;
     }
 
     public function getAllCustomers(): Collection
@@ -94,6 +97,13 @@ class CustomerService
                     $this->representativeService->createRepresentative($repData);
                 }
             }
+            //logs customer
+
+            $this->customerLogService->createLog([
+                'object_id' => $customer->id,
+                'action' => 'Tạo mới',
+                'note' => 'Tạo mới khách hàng: ' . $customer->full_name
+            ]);
 
             DB::commit();
 
@@ -143,7 +153,11 @@ class CustomerService
             if (isset($data['representatives'])) {
                 $this->representativeService->syncCustomerRepresentatives($id, $data['representatives']);
             }
-
+            $this->customerLogService->createLog([
+                'object_id' => $customer->id,
+                'action' => 'Cập nhật',
+                'note' => 'Cập nhật thông tin khách hàng'
+            ]);
             DB::commit();
 
             return $customer->fresh(['contacts', 'representatives']);
@@ -268,5 +282,9 @@ class CustomerService
             }
         }
         return false;
+    }
+    public function getCustomersByIds(array $ids)
+    {
+        return Customer::whereIn('id', $ids)->get();
     }
 }

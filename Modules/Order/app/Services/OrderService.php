@@ -84,6 +84,13 @@ class OrderService
             if ($customer && $customer->status == 'new' || $customer->status == 'unqualified') {
                 $customer->status = 'in_progress';
                 $customer->save();
+                // log customer status change
+                $customerLogService = app(\Modules\Customer\Services\CustomerLogService::class);
+                $customerLogService->createLog([
+                    'object_id' => $customer->id,
+                    'action'    => "Cập nhật trạng thái khách hàng",
+                    'note'      => "Khách hàng đã được chuyển sang trạng thái 'Đang chăm sóc' do tạo đơn hàng.",
+                ]);
             }
             $logService = app(OrderLogService::class);
 
@@ -449,15 +456,37 @@ class OrderService
 
         // Update customer status based on order status
         $customer = Customer::find($order->customer_id);
+        // map status to customer status
+        $customerStatus = [
+            'new' => 'Đăng ký mới',
+            'in_progress' => 'Đang chăm sóc',
+            'converted' => 'Đã chuyển đổi',
+            'unqualified' => 'Không tiềm năng',
+            'inactive' => 'Không hoạt động',
+        ];
+        $isUpdate = false;
         if ($customer) {
             switch ($status) {
                 case 'completed':
                     $customer->status = 'converted';
+                    $isUpdate = true;
                     break;
                 default:
                     break;
             }
-            return $customer->save();
+            $data = false;
+            if ($isUpdate) {
+             
+            $data = $customer->save();
+            $customerLogService = app(\Modules\Customer\Services\CustomerLogService::class);
+            $customerLogService->createLog([
+                'object_id' => $customer->id,
+                'action'    => "Cập nhật trạng thái khách hàng",
+                'note'      => "Hệ thống đã cập nhật khách hàng sang trạng thái '{$customerStatus[$customer->status]}'.",
+                'user_name' => "Hệ thống"
+            ]);
+            }
+            return $data;
         }
 
         return false;

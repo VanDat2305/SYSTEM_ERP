@@ -132,4 +132,8 @@ class Customer extends Model
     {
         return $query->where('assigned_to', $userId);
     }
+    public function orders()
+    {
+        return $this->hasMany('Modules\Order\Models\Order', 'customer_id', 'id');
+    }
 }
