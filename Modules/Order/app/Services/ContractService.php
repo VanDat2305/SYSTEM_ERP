@@ -78,7 +78,7 @@ class ContractService
             // 7. Lưu id file vào order (hoặc contract)
             $order->contract_file_id = $file->id;
             $order->contract_date = now();
-            $order->contract_status = 'pending';
+            $order->contract_status = 'draft';
             $order->save();
 
             // 8. Xóa file tạm
@@ -115,6 +115,10 @@ public function exportAndSaveContractPdf(Order $order, $folderId = null)
     $fileService = app(FileService::class);
     $pdfFile = $fileService->uploadFromContent($pdfContent, $pdfName, $folderId, 'application/pdf');
 
+    $order->contract_file_id = $pdfFile->id;
+    $order->contract_status = 'pending';
+    $order->save();
+
     // 5. Trả về giống như cũ
     return [
         'file_pdf' => $pdfFile,
@@ -132,7 +136,7 @@ public function exportAndSaveContractPdf(Order $order, $folderId = null)
         $number = $latest ? ((int)substr($latest, -4) + 1) : 1;
         return $prefix . str_pad($number, 4, '0', STR_PAD_LEFT);
     }
-    private function getFolderService($folderId)
+    public function getFolderService($folderId)
     {
         if (!$folderId) {
             // 1. Tạo folder nếu chưa có (ví dụ: "HOPDONG")

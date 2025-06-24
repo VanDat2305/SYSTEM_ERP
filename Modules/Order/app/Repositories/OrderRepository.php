@@ -21,7 +21,7 @@ class OrderRepository implements OrderRepositoryInterface
     {
         return $this->model->find($id)->load([
             // Load các quan hệ liên quan nếu cần
-            'customer', 'details.features', 'team'
+            'customer', 'details.features', 'team', 'creator:id,name', 'payments'
         ]);
     }
 

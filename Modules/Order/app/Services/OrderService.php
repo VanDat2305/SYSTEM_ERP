@@ -85,6 +85,17 @@ class OrderService
                 $customer->status = 'in_progress';
                 $customer->save();
             }
+            $logService = app(OrderLogService::class);
+
+            $logService->createLog([
+                'order_id'   => $order->id,
+                'action'     => "Tạo đơn",
+                'note'       => "Đơn hàng được tạo bởi " . ($orderData['created_by'] ? auth()->user()->name : 'Hệ thống'),
+                'file_id'    => null, // Không có file đính kèm trong tạo đơn
+                // old_status, new_status có thể truyền từ client nếu muốn lưu
+                'old_status' => null,
+                'new_status' => $order->order_status ?? 'draft',
+            ]);
 
             return $order;
         });
@@ -273,8 +284,50 @@ class OrderService
 
     // Additional business logic methods
     public function changeOrderStatus(string $orderId, array $data)
-    {   $change = $this->orderRepository->update($orderId, $data);
-        $this->updateStatusCustomer($orderId, $data['order_status'] ?? 'draft');
+    {
+        DB::beginTransaction();
+        try {
+            $order = $this->getOrderById($orderId);
+            $change = $this->orderRepository->update($orderId, $data);
+            
+            // map text status to order_status
+            $statusMap = [
+                'draft' => 'Nháp',
+                'pending' => 'Chờ xử lý',
+                'approved' => 'Đã phê duyệt',
+                'processing' => 'Đang xử lý',
+                'completed' => 'Đã hoàn tất',
+                'cancelled' => 'Đã hủy'
+            ];
+            if (isset($data['order_status']) && array_key_exists($data['order_status'], $statusMap)) {
+                $statusNew = $statusMap[$data['order_status']];
+                $statusOld = $statusMap[$order->order_status] ?? '';
+            } else {
+                $statusNew = 'draft';
+                $statusOld = $statusMap[$order->order_status] ?? '';
+            }
+            $note = "Trạng thái đơn hàng đã được cập nhật từ '{$statusOld}' sang '{$statusNew}'";
+            if (isset($data['reason_cancel'])) {
+                $note .= ". Lý do hủy: " . $data['reason_cancel'];
+            }
+            $logService = app(OrderLogService::class);
+            $logService->createLog([
+                'order_id'   => $orderId,
+                'action'     => "Cập nhật trạng thái",
+                'note'       => $note,
+                'file_id'    => null, // Không có file đính kèm trong tạo đơn
+                'old_status' => $order->order_status ?? 'draft',
+                'new_status' => $data['order_status'],
+            ]);
+            $this->updateStatusCustomer($orderId, $data['order_status'] ?? 'draft');
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error changing order status: ' . $e->getMessage());
+            throw $e;
+        }
+
         return $change;
     }
 
@@ -316,9 +369,10 @@ class OrderService
         $updatedCount = 0;
 
         foreach ($orderIds as $orderId) {
-            if ($this->getOrderById($orderId)) {
+            // Kiểm tra xem đơn hàng có tồn tại không
+            $order = $this->getOrderById($orderId);
+            if ($order) {
                 $this->updateOrderStatus($orderId, $data);
-                $
                 $updatedCount++;
             }
         }

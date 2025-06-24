@@ -42,4 +42,8 @@ class Order extends Model
     public function details() { return $this->hasMany(OrderDetail::class, 'order_id'); }
     public function customer() { return $this->belongsTo(\Modules\Customer\Models\Customer::class, 'customer_id'); }
     public function team() { return $this->belongsTo(\Modules\Users\Models\Team::class, 'team_id'); }
+    public function payments()
+    {
+        return $this->hasMany(\Modules\Order\Models\Payment::class, 'order_id');
+    }
 }

@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Order\Http\Controllers\ContractController;
 use Modules\Order\Http\Controllers\InvoiceController;
 use Modules\Order\Http\Controllers\OrderController;
+use Modules\Order\Http\Controllers\OrderLogController;
 use Modules\Order\Http\Controllers\PaymentController;
 use Modules\Order\Http\Controllers\VnpayController;
 
@@ -31,9 +32,16 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
     });
     Route::patch("orders-update-status", [OrderController::class, 'bulkStatusUpdate']);
     Route::patch("orders/{order}/status", [OrderController::class, 'updateStatus']);
-    Route::post('/orders/{order}/export-invoice', [InvoiceController::class, 'export'])->middleware('can:orders.export-invoice');
-    Route::post('/orders/{order}/resend-invoice', [InvoiceController::class, 'resendInvoice'])->middleware('can:orders.resend-invoice');
-    Route::post('/orders/{order}/export-contract', [ContractController::class, 'exportContract']);//->middleware('can:orders.export-contract');
+    Route::group(['prefix' => 'orders'], function () {
+         Route::post('/{order}/export-invoice', [InvoiceController::class, 'export'])->middleware('can:orders.export-invoice');
+        Route::post('/{order}/resend-invoice', [InvoiceController::class, 'resendInvoice'])->middleware('can:orders.resend-invoice');
+        Route::post('/{order}/export-contract', [ContractController::class, 'exportContract'])->middleware('can:orders.export-contract');
+        Route::post('/{order}/upload-file-signed', [ContractController::class, 'uploadFileSigned']);//->middleware('can:orders.upload-file-signed');
+        Route::delete('/{order}/file', [ContractController::class, 'deleteFileContract']);//->middleware('can:orders.delete-file-signed');
+        Route::post('{order}/add-payment', [InvoiceController::class, 'addPayment']);//->middleware('can:orders.add-payment');
+        Route::post('/{order}/logs/note', [OrderLogController::class, 'store']);
+        Route::get('/{order}/logs', [OrderLogController::class, 'index']);
+    });
 });
 Route::prefix('v1')->group(function () {
 

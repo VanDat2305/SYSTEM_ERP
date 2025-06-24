@@ -121,5 +121,16 @@ class InvoiceService
 
         // Xóa file tạm
         @unlink($tempFilePath);
+
+        //log gửi lại hóa đơn
+        $logService = app(OrderLogService::class);
+
+        $logService->createLog([
+            'order_id'   => $order->id,
+            'action'     => "Xuất hóa đơn",
+            'note'       => "Xuất hóa đơn cho đơn hàng: " . $order->order_code . ". Số hóa đơn: " . $order->invoice_number,
+            'file_id'    => $order->invoice_file_id,
+        ]);
+        return;
     }
 }

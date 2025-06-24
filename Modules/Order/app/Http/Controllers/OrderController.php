@@ -4,6 +4,7 @@ namespace Modules\Order\Http\Controllers;
 
 use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
+use Modules\Order\Services\OrderLogService;
 use Modules\Order\Services\OrderService;
 
 class OrderController extends Controller
@@ -84,6 +85,8 @@ class OrderController extends Controller
 
     public function update(Request $request, string $id)
     {
+        $orderOld = $this->orderService->getOrderById($id);
+        $old_status = $orderOld->order_status;
         // Validate the incoming request, including the new fields you want to update
         $validated = $request->validate([
             'order_status' => 'sometimes|string|max:20',
@@ -109,10 +112,12 @@ class OrderController extends Controller
         // Update the order data excluding 'order_details'
         $orderData = $request->except('order_details');
         $updated = $this->orderService->updateOrder($id, $orderData);
-
         if (!$updated) {
             return response()->json(['message' => __("order::order.not_found")], 404);
         }
+
+        $order = $this->orderService->getOrderById($id);
+
         // Process order details
         if ($request->has('order_details')) {
             $existingDetailIds = $this->orderService->getOrderDetails($id)->pluck('id')->toArray();
@@ -141,6 +146,16 @@ class OrderController extends Controller
             // If no order_details in request, delete all existing details
             $this->orderService->deleteAllOrderDetails($id);
         }
+        $logService = app(OrderLogService::class);
+
+        $logService->createLog([
+            'order_id'   => $order->id,
+            'action'     => "Cập nhật đơn",
+            'note'       => "Cập nhật đơn hàng {$order->order_code}",
+            'file_id'    => null, // Không có file đính kèm trong tạo đơn
+            'old_status' => $orderOld->order_status ?? 'null',
+            'new_status' => $order->order_status ?? 'null',
+        ]);
 
         return response()->json(['message' => __("order::order.updated_successfully")]);
     }
@@ -153,6 +168,15 @@ class OrderController extends Controller
         if (!$deleted) {
             return response()->json(['message' => __("order::order.not_found")], 404);
         }
+        $logService = app(OrderLogService::class);
+
+        $logService->createLog([
+            'order_id'   => $id,    
+            'action'     => "Xóa đơn",
+            'note'       => "Đã xóa đơn hàng {$id}",
+            'file_id'    => null, // Không có file đính kèm trong tạo đơn
+            'new_status' => 'deleted',
+        ]);
 
         return response()->json(['message' => __("order::order.deleted_successfully")]);
     }
