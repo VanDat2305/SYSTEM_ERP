@@ -4,6 +4,5 @@
     "FileManager": true,
     "Service": true,
     "Customer": true,
-    "Order": true,
-    "Account": true
+    "Order": true
 }
