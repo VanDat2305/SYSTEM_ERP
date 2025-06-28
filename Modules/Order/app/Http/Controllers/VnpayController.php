@@ -140,7 +140,7 @@ class VnpayController extends Controller
                     $logService->createLog([
                         'order_id'   => $order->id,
                         'action'     => "Thanh toán vnpay",
-                        'note'       => "Đã thanh toán đơn hàng qua VNPAY: " . $order->order_code . "Số tiền: " . ($request->vnp_Amount / 100),
+                        'note'       => "Đã thanh toán đơn hàng qua VNPAY: " . $order->order_code . " Số tiền: " . ($request->vnp_Amount / 100),
                         'file_id'    => null,
                         'user_name' => 'Khách hàng'
                     ]);

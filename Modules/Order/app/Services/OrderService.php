@@ -512,12 +512,14 @@ class OrderService
 
         $contactInfo = app(\Modules\Customer\Services\CustomerService::class)->getCustomerContactInfo($customer->id);
         if (!$contactInfo) {
-             app('OrderLogService')->createLog([
+             app(OrderLogService::class)->createLog([
                 'order_id' => $orderId,
-                'action' => "Kết nối dịch vụ",
+                'action' => "Kích hoạt dịch vụ",
                 'note' => "Không tìm thấy thông tin liên hệ của khách hàng",
                 'file_id' => null,
+                'user_name' => 'Hệ thống',
             ]);
+            return;
             // throw new \Exception("Không tìm thấy thông tin liên hệ của khách hàng {$customer->email}");
         }
         $primaryEmail = $contactInfo['primary_email'];
@@ -525,19 +527,23 @@ class OrderService
         if (!$primaryEmail) {
             app(OrderLogService::class)->createLog([
                 'order_id' => $orderId,
-                'action' => "Kết nối dịch vụ",
+                'action' => "Kích hoạt dịch vụ",
                 'note' => "Khách hàng không có email liên hệ chính.",
                 'file_id' => null,
+                'user_name' => 'Hệ thống',
             ]);
+            return;
             // throw new \Exception("Khách hàng {$customer->email} không có email liên hệ chính.");
         }
         if (!$primaryPhone) {
             app(OrderLogService::class)->createLog([
                 'order_id' => $orderId,
-                'action' => "Kết nối dịch vụ",
+                'action' => "Kích hoạt dịch vụ",
                 'note' => "Khách hàng không có sdt liên hệ chính.",
                 'file_id' => null,
+                'user_name' => 'Hệ thống',
             ]);
+            return;
             // throw new \Exception("Khách hàng {$customer->email} không có số điện thoại liên hệ chính.");
         }
         // Duyệt từng dịch vụ
@@ -557,6 +563,7 @@ class OrderService
                     'action' => "Kết nối dịch vụ",
                     'note' => "Dịch vụ $serviceType chưa cấu hình API URL!",
                     'file_id' => null,
+                    'user_name' => 'Hệ thống',
                 ]);
                 continue; // Bỏ qua dịch vụ chưa cấu hình
             }
@@ -583,7 +590,7 @@ class OrderService
             if (!$response->successful()) {
                 app(OrderLogService::class)->createLog([
                     'order_id' => $orderId,
-                    'action' => "Kết nối dịch vụ",
+                    'action' => "Lỗi kích hoạt",
                     'note' => "Không kết nối được dịch vụ $serviceType: " . $response->body(),
                     'file_id' => null,
                 ]);
