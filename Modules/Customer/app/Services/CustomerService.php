@@ -7,6 +7,7 @@ namespace Modules\Customer\Services;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Modules\Customer\Models\Customer;
 use Modules\Customer\Interfaces\CustomerRepositoryInterface;
 use Modules\Customer\Services\CustomerContactService;
@@ -287,4 +288,52 @@ class CustomerService
     {
         return Customer::whereIn('id', $ids)->get();
     }
+    /**
+     * Lấy thông tin email và số điện thoại của khách hàng
+     * 
+     * @param string $customerId UUID của khách hàng
+     * @return array [
+     *     'emails' => array,
+     *     'phones' => array,
+     *     'primary_email' => string|null,
+     *     'primary_phone' => string|null,
+     *     'representative_contact' => array|null
+     * ]
+     */
+    function getCustomerContactInfo($customerId)
+    {
+        try {
+            $customer = Customer::with(['contacts', 'representatives'])->findOrFail($customerId);
+            
+            // Lấy danh sách email và số điện thoại từ contacts
+            $contacts = $customer->contacts;
+            $emails = $contacts->where('contact_type', 'email')->sortByDesc('is_primary');
+            $phones = $contacts->where('contact_type', 'phone')->sortByDesc('is_primary');
+            
+            // Lấy thông tin đại diện đầu tiên (nếu có)
+            $representative = $customer->representatives->first();
+            
+            return [
+                'emails' => $emails->pluck('value')->toArray(),
+                'phones' => $phones->pluck('value')->toArray(),
+                'primary_email' => $emails->first()?->value,
+                'primary_phone' => $phones->first()?->value,
+                'representative_contact' => $representative ? [
+                    'email' => $representative->email,
+                    'phone' => $representative->phone
+                ] : null
+            ];
+            
+        } catch (\Exception $e) {
+            Log::error("Error getting customer contact info: " . $e->getMessage());
+            return [
+                'emails' => [],
+                'phones' => [],
+                'primary_email' => null,
+                'primary_phone' => null,
+                'representative_contact' => null
+            ];
+        }
+    }
+
 }

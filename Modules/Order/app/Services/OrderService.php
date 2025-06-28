@@ -2,8 +2,10 @@
 
 namespace Modules\Order\Services;
 
+use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Modules\Order\Interfaces\OrderRepositoryInterface;
 use Modules\Order\Interfaces\OrderDetailRepositoryInterface;
@@ -296,7 +298,7 @@ class OrderService
         try {
             $order = $this->getOrderById($orderId);
             $change = $this->orderRepository->update($orderId, $data);
-            
+
             // map text status to order_status
             $statusMap = [
                 'draft' => 'Nháp',
@@ -476,19 +478,155 @@ class OrderService
             }
             $data = false;
             if ($isUpdate) {
-             
-            $data = $customer->save();
-            $customerLogService = app(\Modules\Customer\Services\CustomerLogService::class);
-            $customerLogService->createLog([
-                'object_id' => $customer->id,
-                'action'    => "Cập nhật trạng thái khách hàng",
-                'note'      => "Hệ thống đã cập nhật khách hàng sang trạng thái '{$customerStatus[$customer->status]}'.",
-                'user_name' => "Hệ thống"
-            ]);
+
+                $data = $customer->save();
+                $customerLogService = app(\Modules\Customer\Services\CustomerLogService::class);
+                $customerLogService->createLog([
+                    'object_id' => $customer->id,
+                    'action'    => "Cập nhật trạng thái khách hàng",
+                    'note'      => "Hệ thống đã cập nhật khách hàng sang trạng thái '{$customerStatus[$customer->status]}'.",
+                    'user_name' => "Hệ thống"
+                ]);
             }
             return $data;
         }
 
         return false;
+    }
+
+    public function activateOrderWithDynamicServices($orderId)
+    {
+        // $order = Order::with('orderDetails.orderPackageFeatures', 'customer')->findOrFail($orderId);
+        $order = $this->getOrderById($orderId);
+        if ($order->payment_status !== 'paid') {
+            throw new \Exception('Đơn hàng chưa được thanh toán!');
+        }
+
+        $customer = $order->customer;
+        if (!$customer) {
+            throw new \Exception('Không tìm thấy khách hàng!');
+        }
+        // Lấy danh sách các loại dịch vụ trong đơn hàng (ví dụ: 'invoice', 'contract' ...)
+        $serviceTypes = $order->details->pluck('service_type')->unique();
+        $listServiceType = app(\Modules\Core\Services\ObjectItemService::class)->getActiveObjectsByTypeCode('service_type');
+
+        $contactInfo = app(\Modules\Customer\Services\CustomerService::class)->getCustomerContactInfo($customer->id);
+        if (!$contactInfo) {
+             app('OrderLogService')->createLog([
+                'order_id' => $orderId,
+                'action' => "Kết nối dịch vụ",
+                'note' => "Không tìm thấy thông tin liên hệ của khách hàng",
+                'file_id' => null,
+            ]);
+            // throw new \Exception("Không tìm thấy thông tin liên hệ của khách hàng {$customer->email}");
+        }
+        $primaryEmail = $contactInfo['primary_email'];
+        $primaryPhone = $contactInfo['primary_phone'];
+        if (!$primaryEmail) {
+            app('OrderLogService')->createLog([
+                'order_id' => $orderId,
+                'action' => "Kết nối dịch vụ",
+                'note' => "Khách hàng không có email liên hệ chính.",
+                'file_id' => null,
+            ]);
+            // throw new \Exception("Khách hàng {$customer->email} không có email liên hệ chính.");
+        }
+        if (!$primaryPhone) {
+            app('OrderLogService')->createLog([
+                'order_id' => $orderId,
+                'action' => "Kết nối dịch vụ",
+                'note' => "Khách hàng không có sdt liên hệ chính.",
+                'file_id' => null,
+            ]);
+            // throw new \Exception("Khách hàng {$customer->email} không có số điện thoại liên hệ chính.");
+        }
+        // Duyệt từng dịch vụ
+        foreach ($serviceTypes as $serviceType) {
+            // lay tu object_type
+            $serviceCfg = $listServiceType->where('code', $serviceType)->first();
+            // Lấy cấu hình API dịch vụ con
+            if (!$serviceCfg) continue; // Bỏ qua dịch vụ chưa cấu hình
+
+            // Chuẩn bị gọi API check/tạo tài khoản
+            $meta = $serviceCfg->meta;
+            $apiUrl = $meta->where('key', 'api_url')->pluck('value') ?? '';
+            if (empty($apiUrl)) {
+                // throw new \Exception("Dịch vụ $serviceType chưa cấu hình API URL!");
+                app('OrderLogService')->createLog([
+                    'order_id' => $orderId,
+                    'action' => "Kết nối dịch vụ",
+                    'note' => "Dịch vụ $serviceType chưa cấu hình API URL!",
+                    'file_id' => null,
+                ]);
+                continue; // Bỏ qua dịch vụ chưa cấu hình
+            }
+
+            $apiUrl = "https://api.datmv-solutions-erp.me/v1/account/check-or-create";
+            $headers = [];
+            // Nếu có cấu hình token, thêm vào header
+            if (!empty($meta->where('key', 'api_url')->pluck('value'))) {
+                // $headers['Authorization'] = 'Basic ' . $serviceCfg->api_token;
+                $headers['Authorization'] = 'Basic YXBpdXNlcjphcGlwYXNzd29yZA==';
+            }
+            // Chuẩn bị dữ liệu gửi đi
+
+            $requestData = [
+                'erp_customer_id' => $customer->id,
+                'email' => $primaryEmail,
+                'name' => $customer->full_name,
+                'phone' => $primaryPhone,
+                'type' => $customer->customer_type,
+            ];
+            // Gọi API để kiểm tra hoặc tạo tài khoản
+            $response = Http::withHeaders($headers)
+                ->post($apiUrl, $requestData);
+            if (!$response->successful()) {
+                app('OrderLogService')->createLog([
+                    'order_id' => $orderId,
+                    'action' => "Kết nối dịch vụ",
+                    'note' => "Không kết nối được dịch vụ $serviceType: " . $response->body(),
+                    'file_id' => null,
+                ]);
+            }
+        }
+
+        $this->activateOrderPackages($order->id);
+    }
+    public function activateOrderPackages($orderId)
+    {
+        // $order = Order::with('orderDetails.orderPackageFeatures')->findOrFail($orderId);
+        $order = $this->getOrderById($orderId);
+
+        foreach ($order->details as $detail) {
+            if ($detail->is_active) continue; // Đã active rồi thì bỏ qua
+
+            // Xác định thời hạn từ feature 'duration'
+            $now = Carbon::now();
+            $duration = $detail->features
+                ->where('feature_key', 'duration')
+                ->first();
+
+            // Nếu không có feature 'duration', mặc định là 12 tháng
+            $months = $duration ? intval($duration->limit_value) : 12;
+
+            $detail->start_date = $now;
+            $detail->end_date   = $now->copy()->addMonths($months);
+            $detail->is_active  = true;
+            $detail->save();
+
+            foreach ($detail->features as $feature) {
+                $feature->is_active = true;
+                $feature->save();
+            }
+        }
+        $logService = app(OrderLogService::class);
+        $logService->createLog([
+            'order_id'   => $orderId,
+            'action'     => "Kích hoạt gói",
+            'note'       => "Đơn hàng đã được kích hoạt thành công.",
+            'file_id'    => null, // Không có file đính kèm trong kích hoạt gói
+            // 'old_status' => $order->order_status ?? 'draft',
+            // 'new_status' => 'processing', // Hoặc trạng thái phù hợp sau khi kích hoạt
+        ]);
     }
 }

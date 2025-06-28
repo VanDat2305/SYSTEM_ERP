@@ -11,6 +11,7 @@ use Modules\Order\Models\Order;
 use Modules\Order\Services\InvoiceService;
 use Modules\Order\Services\OrderLogService;
 use Illuminate\Support\Facades\DB;
+use Modules\Order\Services\OrderService;
 
 class VnpayController extends Controller
 {
@@ -134,6 +135,8 @@ class VnpayController extends Controller
                         'payment_date' => now(),
                         'raw_response' => json_encode($request->all())
                     ]);
+                    // tu dong kich hoat cac dich vu
+                    app(OrderService::class)->activateOrderWithDynamicServices($order->id);
                     $logService = app(OrderLogService::class);
                     $logService->createLog([
                         'order_id'   => $order->id,

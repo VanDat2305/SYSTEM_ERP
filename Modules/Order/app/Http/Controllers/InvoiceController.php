@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Modules\Order\Models\Order;
+use Modules\Order\Services\OrderService;
 use Modules\Order\Services\InvoiceService;
 use Modules\Order\Services\OrderLogService;
 
@@ -87,7 +88,19 @@ class InvoiceController extends Controller
             $amount_paid = $request->input('amount_paid');
             $payment_date = $request->input('payment_date');
             $paymentMethod = $request->input('payment_method', 'bank_transfer'); // Mặc định là bank_transfer
-
+            if (!$order) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không tìm thấy đơn hàng.'
+                ], 404);
+            }
+            // Kiểm tra trạng thái đơn hàng
+            if ($order->payment_status === 'paid') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Đơn hàng đã được thanh toán.'
+                ], 400);
+            }
             // Kiểm tra số tiền thanh toán
             if ($amount_paid <= 0) {
                 return response()->json([
@@ -109,6 +122,8 @@ class InvoiceController extends Controller
                 $order->paid_at = now();
                 $order->payment_status = 'paid';
                 $order->save();
+                // Cập nhật kích hoạt dịch vụ
+                app(OrderService::class)->activateOrderWithDynamicServices($order->id);
             } else {
                 $order->payment_status = 'partially_paid';
                 $order->paid_at = now();
