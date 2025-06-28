@@ -18,7 +18,7 @@ class OrderLogService
             'new_status' => $data['new_status'] ?? null,
             'note'       => $data['note'] ?? null,
             'file_id'    => $data['file_id'] ?? null,
-            'user_id'    => $data['user_id'] ?? auth()->id(),
+            'user_id'    => $data['user_id'] ?? auth()->id() ?? null,
             'user_name'  => $data['user_name'] ?? (auth()->user()?->name ?? null),
             'created_at' => now()
         ]);

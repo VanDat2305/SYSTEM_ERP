@@ -523,7 +523,7 @@ class OrderService
         $primaryEmail = $contactInfo['primary_email'];
         $primaryPhone = $contactInfo['primary_phone'];
         if (!$primaryEmail) {
-            app('OrderLogService')->createLog([
+            app(OrderLogService::class)->createLog([
                 'order_id' => $orderId,
                 'action' => "Kết nối dịch vụ",
                 'note' => "Khách hàng không có email liên hệ chính.",
@@ -532,7 +532,7 @@ class OrderService
             // throw new \Exception("Khách hàng {$customer->email} không có email liên hệ chính.");
         }
         if (!$primaryPhone) {
-            app('OrderLogService')->createLog([
+            app(OrderLogService::class)->createLog([
                 'order_id' => $orderId,
                 'action' => "Kết nối dịch vụ",
                 'note' => "Khách hàng không có sdt liên hệ chính.",
@@ -552,7 +552,7 @@ class OrderService
             $apiUrl = $meta->where('key', 'api_url')->pluck('value') ?? '';
             if (empty($apiUrl)) {
                 // throw new \Exception("Dịch vụ $serviceType chưa cấu hình API URL!");
-                app('OrderLogService')->createLog([
+                app(OrderLogService::class)->createLog([
                     'order_id' => $orderId,
                     'action' => "Kết nối dịch vụ",
                     'note' => "Dịch vụ $serviceType chưa cấu hình API URL!",
@@ -581,7 +581,7 @@ class OrderService
             $response = Http::withHeaders($headers)
                 ->post($apiUrl, $requestData);
             if (!$response->successful()) {
-                app('OrderLogService')->createLog([
+                app(OrderLogService::class)->createLog([
                     'order_id' => $orderId,
                     'action' => "Kết nối dịch vụ",
                     'note' => "Không kết nối được dịch vụ $serviceType: " . $response->body(),

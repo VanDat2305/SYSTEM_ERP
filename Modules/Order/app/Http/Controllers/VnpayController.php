@@ -136,7 +136,6 @@ class VnpayController extends Controller
                         'raw_response' => json_encode($request->all())
                     ]);
                     // tu dong kich hoat cac dich vu
-                    app(OrderService::class)->activateOrderWithDynamicServices($order->id);
                     $logService = app(OrderLogService::class);
                     $logService->createLog([
                         'order_id'   => $order->id,
@@ -145,6 +144,7 @@ class VnpayController extends Controller
                         'file_id'    => null,
                         'user_name' => 'Khách hàng'
                     ]);
+                    app(OrderService::class)->activateOrderWithDynamicServices($order->id);
                 }
             }
 

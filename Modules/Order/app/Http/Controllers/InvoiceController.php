@@ -122,8 +122,6 @@ class InvoiceController extends Controller
                 $order->paid_at = now();
                 $order->payment_status = 'paid';
                 $order->save();
-                // Cập nhật kích hoạt dịch vụ
-                app(OrderService::class)->activateOrderWithDynamicServices($order->id);
             } else {
                 $order->payment_status = 'partially_paid';
                 $order->paid_at = now();
@@ -137,6 +135,10 @@ class InvoiceController extends Controller
                 'note'       => "Đã thêm thanh toán cho đơn hàng: " . $order->order_code . ". Số tiền: " . $amount_paid,
                 'file_id'    => null,
             ]);
+            if ($order->payment_status === 'paid') {
+                // Tự động kích hoạt các dịch vụ liên quan nếu đơn hàng đã thanh toán
+                app(OrderService::class)->activateOrderWithDynamicServices($order->id);
+            }
             DB::commit();
             return response()->json([
                 'success' => true,
