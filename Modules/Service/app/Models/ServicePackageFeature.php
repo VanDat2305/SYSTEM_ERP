@@ -19,7 +19,8 @@ class ServicePackageFeature extends Model
     protected $casts = [
         'is_optional' => 'boolean',
         'is_customizable' => 'boolean',
-        'limit_value' => 'decimal:2',
+        'limit_value' => 'integer',
+        'used_count' => 'integer',
     ];
     public static function boot()
     {

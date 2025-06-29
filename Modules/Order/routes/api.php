@@ -42,6 +42,7 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
         Route::post('/{order}/logs/note', [OrderLogController::class, 'store']);
         Route::get('/{order}/logs', [OrderLogController::class, 'index']);
     });
+    Route::get('/order-details/{id}/prepare-renew', [OrderController::class, 'prepareRenew']);
 });
 Route::prefix('v1')->group(function () {
 
@@ -54,4 +55,12 @@ Route::prefix('v1')->group(function () {
     Route::post('/payment/vnpay/initiate', [VnpayController::class, 'initiateVnpay']);
     Route::get('/payment/vnpay/return', [VnpayController::class, 'handleReturn']);
     Route::match(['get','post'], '/payment/vnpay/ipn', [VnpayController::class, 'handleIpn']);
+
+
+    // Quota API
+    Route::prefix('quota')->group(function () {
+        Route::get('check', [\Modules\Order\Http\Controllers\QuotaController::class, 'check']);
+        Route::post('use', [\Modules\Order\Http\Controllers\QuotaController::class, 'use']);
+        Route::post('warning', [\Modules\Order\Http\Controllers\QuotaController::class, 'warning']);
+    });
 });

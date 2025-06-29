@@ -19,8 +19,8 @@ class ServicePackage extends Model
     protected $guarded = [];
     protected $casts = [
         'is_active' => 'boolean',
-        'base_price' => 'decimal:2',
-        'tax_rate' => 'decimal:2',
+        'base_price' => 'float',
+        'tax_rate' => 'integer',
         'tax_included' => 'boolean',
     ];
     public static function boot()

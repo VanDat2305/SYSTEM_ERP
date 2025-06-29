@@ -49,5 +49,9 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
         Route::post('/mark-inactive', [CustomerController::class, 'markInactiveBulk']);
         Route::post('/restore', [CustomerController::class, 'restoreBulk']);
 
+        Route::get('/{customerId}/packages/list', [CustomerController::class, 'customerPackagesList']);
+        Route::get('/{customerId}/packages/summary', [CustomerController::class, 'customerPackagesSummary']);
+
+
     });
 });

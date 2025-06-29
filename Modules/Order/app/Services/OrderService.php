@@ -623,6 +623,7 @@ class OrderService
 
             foreach ($detail->features as $feature) {
                 $feature->is_active = true;
+                $feature->used_count = 0;
                 $feature->save();
             }
         }

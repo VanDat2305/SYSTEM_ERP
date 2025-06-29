@@ -4,6 +4,7 @@ namespace Modules\Order\Http\Controllers;
 
 use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
+use Modules\Order\Models\OrderDetail;
 use Modules\Order\Services\OrderLogService;
 use Modules\Order\Services\OrderService;
 
@@ -129,7 +130,7 @@ class OrderController extends Controller
                     $this->orderService->updateOrderDetail($orderDetail['id'], $orderDetail);
                     $requestDetailIds[] = $orderDetail['id'];
                 } else {
-                        // Add new detail - sửa lại chỗ này
+                    // Add new detail - sửa lại chỗ này
                     $createdDetails = $this->orderService->addOrderDetails($id, [$orderDetail]);
                     if (!empty($createdDetails) && isset($createdDetails[0])) {
                         $requestDetailIds[] = $createdDetails[0]->id;
@@ -171,7 +172,7 @@ class OrderController extends Controller
         $logService = app(OrderLogService::class);
 
         $logService->createLog([
-            'order_id'   => $id,    
+            'order_id'   => $id,
             'action'     => "Xóa đơn",
             'note'       => "Đã xóa đơn hàng {$id}",
             'file_id'    => null, // Không có file đính kèm trong tạo đơn
@@ -264,5 +265,47 @@ class OrderController extends Controller
         }
 
         return response()->json(['message' => __("order::order.status_updated")]);
+    }
+    public function prepareRenew($id)
+    {
+        $oldDetail = OrderDetail::with(['features'])->findOrFail($id);
+        // 2. Clone thông tin (KHÔNG copy id, order_id)
+        $newDetail = [
+            'service_type'      => $oldDetail->service_type,
+            'service_package_id' => $oldDetail->service_package_id,
+            'package_code'      => $oldDetail->package_code,
+            'package_name'      => $oldDetail->package_name,
+            'base_price'        => $oldDetail->base_price,
+            'quantity'          => 1,
+            'currency'          => $oldDetail->currency,
+            'tax_rate'          => $oldDetail->tax_rate,
+            'tax_included'      => $oldDetail->tax_included,
+            'start_date'        => null,   // hoặc FE tự chọn lại
+            'end_date'          => null,
+            'is_active'         => false,
+            'renewed_from_detail_id' => $oldDetail->id,
+        ];
+
+        // 3. Clone features (KHÔNG giữ id)
+        $features = [];
+        foreach ($oldDetail->features as $feature) {
+            $features[] = [
+                'feature_key'        => $feature->feature_key,
+                'feature_name'       => $feature->feature_name,
+                'feature_type'       => $feature->feature_type,
+                'unit'               => $feature->unit,
+                'limit_value'        => $feature->limit_value,
+                'is_optional'        => $feature->is_optional,
+                'is_customizable'    => $feature->is_customizable,
+                'display_order'      => $feature->display_order,
+                'is_active'          => true,
+                'original_limit_value' => $feature->limit_value,
+                'limit_value_boolean'  => $feature->feature_type === 'boolean' ? (bool)$feature->limit_value : null,
+            ];
+        }
+
+        $newDetail['features'] = $features;
+
+        return response()->json($newDetail);
     }
 }

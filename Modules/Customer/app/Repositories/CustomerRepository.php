@@ -26,7 +26,7 @@ class CustomerRepository implements CustomerRepositoryInterface
     {
         $query = $this->model->with(['contacts', 'representatives']);
         $user = auth()->user();
-            // Kiểm tra quyền của người dùng
+        // Kiểm tra quyền của người dùng
         if ($user->can('customers.view')) {
             // Admin có thể xem tất cả khách hàng
         } elseif ($user->can('customers.view.team')) {
@@ -44,6 +44,44 @@ class CustomerRepository implements CustomerRepositoryInterface
 
         if (!empty($filters['customer_type']) && strtolower($filters['customer_type']) !== 'all') {
             $query->where('customer_type', $filters['customer_type']);
+        }
+        if (!empty($filters['status'])) {
+            $now = now();
+
+            if ($filters['status'] === 'expiring_soon') {
+                $query->whereHas('orderDetails', function ($q) use ($now) {
+                    $q->where('start_date', '<=', $now) // Chỉ xét gói đã bắt đầu
+                        ->where(function ($subQ) use ($now) {
+                            // 1. Sắp hết hạn thời gian (còn < 60 ngày)
+                            $subQ->where('end_date', '>', $now)
+                                ->where('end_date', '<', $now->copy()->addDays(60));
+
+                            // 2. HOẶC quota còn < 10% (và đã bắt đầu)
+                            $subQ->orWhereHas('features', function ($qq) {
+                                $qq->where('limit_value', '>', 0)
+                                    ->where('quantity', '>', 0)
+                                    ->whereRaw('(used_count / (limit_value * quantity)) >= 0.9'); // Đã dùng >= 90%
+                            });
+                        });
+                });
+            } elseif ($filters['status'] === 'expired') {
+                $query->whereHas('orderDetails', function ($q) use ($now) {
+                    $q->where('start_date', '<=', $now) // Chỉ xét gói đã bắt đầu
+                        ->where(function ($subQ) use ($now) {
+                            // 1. Hết hạn thời gian
+                            $subQ->where('end_date', '<', $now);
+
+                            // 2. HOẶC đã dùng hết quota
+                            $subQ->orWhereHas('features', function ($qq) {
+                                $qq->where('limit_value', '>', 0)
+                                    ->where('quantity', '>', 0)
+                                    ->whereRaw('used_count >= (limit_value * quantity)');
+                            });
+                        });
+                });
+            }
+
+            unset($filters['status']); // Xóa filter để không xử lý lại
         }
 
         if (!empty($filters['status']) && strtolower($filters['status']) !== 'all') {
@@ -72,9 +110,9 @@ class CustomerRepository implements CustomerRepositoryInterface
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('full_name', 'like', "%{$search}%")
-                  ->orWhere('short_name', 'like', "%{$search}%")
-                  ->orWhere('tax_code', 'like', "%{$search}%")
-                  ->orWhere('identity_number', 'like', "%{$search}%");
+                    ->orWhere('short_name', 'like', "%{$search}%")
+                    ->orWhere('tax_code', 'like', "%{$search}%")
+                    ->orWhere('identity_number', 'like', "%{$search}%");
             });
         }
         if (!empty($filters['created_at'])) {
@@ -123,7 +161,7 @@ class CustomerRepository implements CustomerRepositoryInterface
         if (!$customer) {
             throw new \Exception(__("customer::messages.customer_not_found"));
         }
-        
+
         $customer->update($data);
         return $customer->fresh(['contacts', 'representatives']);
     }
@@ -134,7 +172,7 @@ class CustomerRepository implements CustomerRepositoryInterface
         if (!$customer) {
             throw new \Exception(__('customer::messages.customer_not_found'));
         }
-        
+
         return $customer->delete();
     }
     public function findByCustomerCode(string $customerCode): ?Customer
@@ -161,9 +199,9 @@ class CustomerRepository implements CustomerRepositoryInterface
     {
         return $this->model->where(function ($query) use ($keyword) {
             $query->where('full_name', 'like', "%{$keyword}%")
-                  ->orWhere('short_name', 'like', "%{$keyword}%")
-                  ->orWhere('tax_code', 'like', "%{$keyword}%")
-                  ->orWhere('identity_number', 'like', "%{$keyword}%");
+                ->orWhere('short_name', 'like', "%{$keyword}%")
+                ->orWhere('tax_code', 'like', "%{$keyword}%")
+                ->orWhere('identity_number', 'like', "%{$keyword}%");
         })->with(['contacts', 'representatives'])->get();
     }
 }

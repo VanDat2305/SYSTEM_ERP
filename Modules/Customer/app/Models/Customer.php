@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 use Modules\Customer\Helpers\CustomerCodeHelper;
+use Modules\Order\Models\Order;
+use Modules\Order\Models\OrderDetail;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
@@ -136,4 +138,16 @@ class Customer extends Model
     {
         return $this->hasMany('Modules\Order\Models\Order', 'customer_id', 'id');
     }
+    public function orderDetails()
+    {
+        return $this->hasManyThrough(
+            OrderDetail::class, 
+            Order::class, 
+            'customer_id', // Foreign key on orders table...
+            'order_id',    // Foreign key on order_details table...
+            'id',          // Local key on customers table...
+            'id'           // Local key on orders table...
+        );
+    }
+
 }

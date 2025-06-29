@@ -29,7 +29,11 @@ class OrderDetail extends Model
         'tax_rate',
         'tax_included',
         'tax_amount',
-        'total_with_tax'
+        'total_with_tax',
+        'renewed_from_detail_id',
+    ];
+    protected $casts = [
+        'tax_rate' => 'integer',
     ];
 
     protected static function boot()

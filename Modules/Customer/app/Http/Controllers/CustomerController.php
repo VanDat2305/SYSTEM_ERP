@@ -10,6 +10,8 @@ use Modules\Customer\Http\Requests\UpdateCustomerRequest;
 use Modules\Customer\Services\CustomerLogService;
 use Modules\Customer\Services\CustomerService;
 use Illuminate\Support\Facades\DB;
+use Modules\Order\Models\Order;
+use Modules\Order\Models\OrderDetail;
 
 class CustomerController extends Controller
 {
@@ -505,5 +507,153 @@ class CustomerController extends Controller
             DB::rollBack();
             return response()->json(['message' => $e->getMessage()], 400);
         }
+    }
+    public function customerPackagesList(Request $request, $customerId)
+    {
+        $pageSize = $request->input('per_page', 10);
+
+        $orderDetails = OrderDetail::with('features')
+            ->whereHas('order', function ($q) use ($customerId) {
+                $q->where('customer_id', $customerId)
+                    ->where('order_status', '!=', 'draft');
+            })
+            ->whereNotNull('start_date')
+            ->whereNotNull('end_date')
+            ->orderByDesc('created_at')
+            ->paginate($pageSize);
+
+        $renewedDetailIds = OrderDetail::whereNotNull('renewed_from_detail_id')
+            ->pluck('renewed_from_detail_id')
+            ->toArray();
+
+        $data = $orderDetails->map(function ($detail) use ($renewedDetailIds) {
+            return $this->formatPackageDetail($detail, $renewedDetailIds);
+        });
+
+        return response()->json($data);
+    }
+
+    public function customerPackagesSummary(Request $request, $customerId)
+    {
+        // Tổng số đơn hàng đã tạo (đơn không draft)
+        $totalOrders = Order::where('customer_id', $customerId)
+            ->whereNotIn('order_status', ['draft'])
+            ->count();
+
+        // Lấy tất cả order_details đã mua
+        $orderDetails = OrderDetail::with('features')
+            ->whereHas('order', function ($q) use ($customerId) {
+                $q->where('customer_id', $customerId)
+                    ->where('payment_status', 'paid')
+                    ->whereNotIn('order_status', ['draft', 'cancelled']);
+            })
+            ->get();
+
+        // Thống kê số gói sắp hết hạn và đã hết hạn
+        $renewedDetailIds = OrderDetail::whereNotNull('renewed_from_detail_id')
+            ->pluck('renewed_from_detail_id')
+            ->toArray();
+
+        $expiringSoon = 0;
+        $expired = 0;
+
+        foreach ($orderDetails as $detail) {
+            $status = $this->determinePackageStatus($detail, $renewedDetailIds);
+
+            if ($status === 'expired') {
+                $expired++;
+            } elseif ($status === 'warning') {
+                $expiringSoon++;
+            }
+        }
+
+        // Phân loại số lượng gói theo loại dịch vụ
+        $serviceTypeOptions = app(\Modules\Core\Services\ObjectItemService::class)->getActiveObjectsByTypeCode('service_type');
+        $packagesByType = [];
+        foreach ($serviceTypeOptions as $type) {
+            $count = $orderDetails->where('service_type', $type['code'])->count();
+            $packagesByType[] = [
+                'type'  => $type['code'],
+                'label' => $type['name'],
+                'count' => $count
+            ];
+        }
+
+        // Đơn gần nhất
+        $lastOrder = Order::where('customer_id', $customerId)
+            ->whereNotIn('order_status', ['draft', 'cancelled'])
+            ->orderByDesc('created_at')->first();
+
+        return response()->json([
+            'totalOrders'     => $totalOrders,
+            'totalPackages'   => $orderDetails->count(),
+            'totalAmount'     => number_format(Order::where('customer_id', $customerId)
+                ->whereNotIn('order_status', ['draft', 'cancelled'])
+                ->where('payment_status', 'paid')
+                ->sum('total_amount'), 0, '', '.'),
+            'lastOrderDate'   => $lastOrder ? $lastOrder->created_at->format('d/m/Y') : null,
+            'lastOrderCode'   => $lastOrder ? $lastOrder->order_code : null,
+            'packagesByType'  => $packagesByType,
+            'expiringSoon'    => $expiringSoon,
+            'expired'         => $expired,
+        ]);
+    }
+
+    // Hàm helper để xác định trạng thái package
+    protected function determinePackageStatus($detail, $renewedDetailIds)
+    {
+        $now = now();
+        $feature = $detail->features->first();
+        $totalQuota = $feature ? ($feature->limit_value * $detail->quantity) : null;
+        $used = $feature ? $feature->used_count : null;
+        $remain = $feature ? ($totalQuota - $used) : null;
+        $end = $detail->end_date ? \Carbon\Carbon::parse($detail->end_date) : null;
+        $start = $detail->start_date ? \Carbon\Carbon::parse($detail->start_date) : null;
+
+        if (in_array($detail->id, $renewedDetailIds)) {
+            return 'renewed';
+        }
+
+        // Đã hết hạn
+        if (($remain !== null && $remain <= 0) || ($end && $end->isPast())) {
+            return 'expired';
+        }
+
+        // Chỉ xét sắp hết hạn nếu đã qua ngày bắt đầu
+        if ($start && $start->isPast()) {
+            // Sắp hết quota (dưới 10%)
+            $isLowQuota = $totalQuota && $remain !== null && $totalQuota > 0 && ($remain / $totalQuota) < 0.1;
+
+            // Sắp hết thời gian (dưới 60 ngày)
+            $isNearExpiry = $end && $end->isFuture() && $now->diffInDays($end) < 60;
+            if ($isLowQuota || $isNearExpiry) {
+                return 'warning';
+            }
+        }
+
+        return 'active';
+    }
+
+    // Hàm helper để format dữ liệu package detail
+    protected function formatPackageDetail($detail, $renewedDetailIds)
+    {
+        $status = $this->determinePackageStatus($detail, $renewedDetailIds);
+        $feature = $detail->features->first();
+        $totalQuota = $feature ? ($feature->limit_value * $detail->quantity) : null;
+        $used = $feature ? $feature->used_count : null;
+        $remain = $feature ? ($totalQuota - $used) : null;
+
+        return [
+            'id'           => $detail->id,
+            'package_code' => $detail->package_code,
+            'package_name' => $detail->package_name,
+            'service_type' => $detail->service_type,
+            'total_quota'  => $totalQuota !== null ? number_format($totalQuota, 0, '', '.') : null,
+            'used'         => $used !== null ? number_format($used, 0, '', '.') : null,
+            'remain'       => $remain !== null ? number_format($remain, 0, '', '.') : null,
+            'start_date'   => $detail->start_date,
+            'end_date'     => $detail->end_date,
+            'status'       => $status,
+        ];
     }
 }
