@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Order\Http\Controllers\ContractController;
+use Modules\Order\Http\Controllers\DashboardController;
 use Modules\Order\Http\Controllers\InvoiceController;
 use Modules\Order\Http\Controllers\OrderController;
 use Modules\Order\Http\Controllers\OrderLogController;
@@ -43,6 +44,15 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
         Route::get('/{order}/logs', [OrderLogController::class, 'index']);
     });
     Route::get('/order-details/{id}/prepare-renew', [OrderController::class, 'prepareRenew']);
+    Route::group(['prefix' => 'dashboard'], function () {
+        Route::get('/kpi', [DashboardController::class, 'kpi']);
+        Route::get('/revenue', [DashboardController::class, 'revenue']);
+        Route::get('/orders', [DashboardController::class, 'orders']);  
+        Route::get('/customers', [DashboardController::class, 'customers']);
+        Route::get('/analytics', [DashboardController::class, 'analytics']);
+        Route::get('/customer-growth', [DashboardController::class, 'customerGrowth']);
+        Route::get('/export', [DashboardController::class, 'export']);
+    });
 });
 Route::prefix('v1')->group(function () {
 
