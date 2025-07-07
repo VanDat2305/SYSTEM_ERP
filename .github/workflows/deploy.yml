@@ -59,7 +59,14 @@ jobs:
           chmod -R 775 /var/www/html/api_erp/storage /var/www/html/api_erp/bootstrap/cache
           echo "Permissions for storage and bootstrap/cache directories have been set."
         '
-
+    - name: Create folders for contract exports and set permissions
+      run: |
+        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@152.42.214.115 '
+          mkdir -p /var/www/html/api_erp/storage/app/contracts/exports
+          chown -R www-data:www-data /var/www/html/api_erp/storage/app/contracts
+          chmod -R 775 /var/www/html/api_erp/storage/app/contracts
+          echo "Created contracts/exports folder and set permissions."
+        '
     - name: Run Artisan Commands on VPS
       run: |
         ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@152.42.214.115 "cd /var/www/html/api_erp && php artisan cache:clear && php artisan config:cache && php artisan view:cache  && php artisan route:clear"
