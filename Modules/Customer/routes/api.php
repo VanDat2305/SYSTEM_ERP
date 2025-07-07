@@ -20,12 +20,12 @@ use Modules\Customer\Http\Controllers\CustomerRepresentativeController;
 Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
     // Customer routes
     Route::prefix('customers')->group(function () {
-        Route::get('/', [CustomerController::class, 'index'])->middleware('permission:customers.view');
+        Route::get('/', [CustomerController::class, 'index']);//->middleware('permission:customers.view');
         Route::post('/', [CustomerController::class, 'store'])->middleware('permission:customers.create');
-        Route::get('/search', [CustomerController::class, 'search'])->middleware('permission:customers.view');
-        Route::get('/type/{type}', [CustomerController::class, 'getByType'])->middleware('permission:customers.view');
-        Route::get('/code/{code}', [CustomerController::class, 'getByCustomerCode'])->middleware('permission:customers.view');
-        Route::get('/{id}', [CustomerController::class, 'show'])->middleware('permission:customers.view');
+        Route::get('/search', [CustomerController::class, 'search']);//->middleware('permission:customers.view');
+        Route::get('/type/{type}', [CustomerController::class, 'getByType']);//->middleware('permission:customers.view');
+        Route::get('/code/{code}', [CustomerController::class, 'getByCustomerCode']);//->middleware('permission:customers.view');
+        Route::get('/{id}', [CustomerController::class, 'show']);//->middleware('permission:customers.view');
         Route::put('/{id}', [CustomerController::class, 'update'])->middleware('permission:customers.update');
         Route::delete('/{id}', [CustomerController::class, 'destroy'])->middleware('permission:customers.delete');
         // Route::put('/{id}/toggle-status', [CustomerController::class, 'toggleStatus'])->middleware('permission:customers.toggle_status');
