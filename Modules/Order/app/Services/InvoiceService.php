@@ -89,7 +89,7 @@ class InvoiceService
             $rep = $order->customer->representatives->first();
             $email = $rep->email ?? null;
         }
-        $email = 'datmv.dev@gmail.com';
+        // $email = 'datmv.dev@gmail.com';
         if (!$email) {
             throw new \Exception('Chưa có email khách hàng');
         }
