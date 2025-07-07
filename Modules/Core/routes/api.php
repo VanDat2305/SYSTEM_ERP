@@ -23,6 +23,10 @@ use Modules\Core\Http\Controllers\ProvinceController;
 // Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
 //     Route::apiResource('core', CoreController::class)->names('core');
 // });
+Route::prefix('v1')->group(function () {
+        Route::get('/objects-cache', [ObjectTypeController::class, 'getAllCachedCategories']);
+    Route::get('/objects-refesh-cache', [ObjectTypeController::class, 'refreshAllCategoryCache']);
+});
 Route::middleware([\App\Http\Middleware\CustomSanctumAuth::class])->prefix('v1')->group(function () {
     Route::get('menus', [MenuController::class, 'index']);  // Lấy danh sách menu
     Route::post('menus', [MenuController::class, 'store']); // Thêm menu mới
@@ -33,8 +37,7 @@ Route::middleware([\App\Http\Middleware\CustomSanctumAuth::class])->prefix('v1')
     Route::apiResource('objects', ObjectItemController::class);
     Route::apiResource('object-meta', ObjectMetaController::class);
 
-    Route::get('/objects-cache', [ObjectTypeController::class, 'getAllCachedCategories']);
-    Route::get('/objects-refesh-cache', [ObjectTypeController::class, 'refreshAllCategoryCache']);
+
 
     
 
