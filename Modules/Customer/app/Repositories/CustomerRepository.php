@@ -35,7 +35,7 @@ class CustomerRepository implements CustomerRepositoryInterface
             $query->whereIn('team_id', $teamIds);
         } elseif ($user->can('customers.view.own')) {
             // Người dùng chỉ có thể xem khách hàng mà họ đã tạo
-            $query->where('created_by', $user->id);
+            $query->where('assigned_to', $user->id);
         } else {
             // Nếu người dùng không có quyền, trả về lỗi
             throw new \Exception(__('customer::messages.forbidden_access'));

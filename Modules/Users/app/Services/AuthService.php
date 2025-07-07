@@ -36,7 +36,6 @@ class AuthService
             $user->notify(new VerifyEmailNotification());
 
             return $user;
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('regist failed', ['error' => $e->getMessage()]);
@@ -142,13 +141,7 @@ class AuthService
                 'title'      => __('System'),
                 'icon'       => 'mdi-system-group',
                 'children'   => [
-                    [
-                        'title'      => __('Users'),
-                        'icon'       => 'mdi-account',
-                        'route'      => 'system/users',
-                        'routeName'  => 'system.users',
-                        'permission' => 'users.view',
-                    ],
+
                     [
                         'title'      => __('Roles'),
                         'icon'       => 'mdi-account-key',
@@ -157,12 +150,13 @@ class AuthService
                         'permission' => 'roles.view',
                     ],
                     [
-                        'title'      => __('Teams'),
-                        'icon'       => 'mdi-account-multiple',
-                        'route'      => 'system/teams',
-                        'routeName'  => 'system.teams',
-                        'permission' => 'teams.view',
+                        'title'      => __('Users'),
+                        'icon'       => 'mdi-account',
+                        'route'      => 'system/users',
+                        'routeName'  => 'system.users',
+                        'permission' => 'users.view',
                     ],
+
                     [
                         'title'      => __('Permissions'),
                         'icon'       => 'mdi-shield-key',
@@ -176,6 +170,13 @@ class AuthService
                         'route'      => 'system/logs',
                         'routeName'  => 'system.logs',
                         'permission' => 'logs.view',
+                    ],
+                    [
+                        'title'      => __('Teams'),
+                        'icon'       => 'mdi-account-multiple',
+                        'route'      => 'system/teams',
+                        'routeName'  => 'system.teams',
+                        'permission' => 'teams.view',
                     ],
                 ],
             ],
@@ -238,12 +239,12 @@ class AuthService
                 }
                 return null;
             }
-    
+
             // Kiểm tra permission
             if (isset($item['permission']) && !$user->can($item['permission'])) {
                 return null;
             }
-    
+
             return $item;
         }, $menu)));
     }
