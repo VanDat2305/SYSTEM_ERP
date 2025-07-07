@@ -26,7 +26,7 @@ return [
             'pending' => 'Chờ xử lý',
             'confirmed' => 'Đã xác nhận',
             'processing' => 'Đang xử lý',
-            'completed' => 'Hoàn thành',
+            'completed' => 'Đã hoàn tất',
             'cancelled' => 'Đã hủy',
         ],
 

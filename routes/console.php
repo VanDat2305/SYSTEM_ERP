@@ -13,4 +13,5 @@ Artisan::command('inspire', function () {
 
 return function (Schedule $schedule) {
     $schedule->command('notify:package-expiry')->dailyAt('08:00');
+    $schedule->command('orders:auto-complete')->everyFifteenMinutes();
 };
