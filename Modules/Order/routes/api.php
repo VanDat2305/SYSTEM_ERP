@@ -42,6 +42,8 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
         Route::post('{order}/add-payment', [InvoiceController::class, 'addPayment']);//->middleware('can:orders.add-payment');
         Route::post('/{order}/logs/note', [OrderLogController::class, 'store']);
         Route::get('/{order}/logs', [OrderLogController::class, 'index']);
+
+        Route::post('/{order}/send-contract-mail', [ContractController::class, 'sendContract']);//->middleware('can:orders.send-contract-mail');
     });
     Route::get('/order-details/{id}/prepare-renew', [OrderController::class, 'prepareRenew']);
     Route::group(['prefix' => 'dashboard'], function () {

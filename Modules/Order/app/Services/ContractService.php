@@ -2,6 +2,7 @@
 
 namespace Modules\Order\Services;
 
+use App\Mail\SendContractToCustomer;
 use Modules\Order\Models\Order;
 use Modules\FileManager\Services\FileService;
 use Illuminate\Support\Facades\DB;
@@ -9,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 use Modules\FileManager\Services\FolderService;
 use PhpOffice\PhpWord\TemplateProcessor;
 use \Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
 
 class ContractService
 {
@@ -158,5 +160,63 @@ public function exportAndSaveContractPdf(Order $order, $folderId = null)
             }
         }
         return $folderId;
+    }
+        public function sendContractEmail($order)
+    {
+        // Ưu tiên lấy email contact chính
+        $emailContact = $order->customer->contacts
+            ->where('contact_type', 'email')
+            ->where('is_primary', 1)
+            ->first();
+
+        $email = $emailContact ? $emailContact->contact : null;
+
+        // Nếu không có, lấy email của representative đầu tiên (nếu có)
+        if (!$email && ($order->customer->representatives->count() > 0)) {
+            $rep = $order->customer->representatives->first();
+            $email = $rep->email ?? null;
+        }
+        if (!$email) {
+            throw new \Exception('Chưa có email khách hàng');
+        }
+        if (!$order->contract_file_id) {
+            throw new \Exception('Đơn hàng chưa hợp đồng');
+        }
+
+        $file = \Modules\FileManager\Models\File::find($order->contract_file_id);
+        if (!$file) {
+            throw new \Exception('Không tìm thấy file hợp đồng');
+        }
+
+        // Tải file tạm về nếu dùng cloud (S3/Spaces), hoặc dùng đường dẫn local
+        $tempFilePath = storage_path('app/temp_contracts/' . $file->name);
+        if (!file_exists(dirname($tempFilePath))) {
+            mkdir(dirname($tempFilePath), 0777, true);
+        }
+
+        if (Storage::disk('spaces')->exists($file->path)) {
+            // copy file từ cloud về local tạm thời
+            file_put_contents($tempFilePath, Storage::disk('spaces')->get($file->path));
+        } else {
+            throw new \Exception('Không tìm thấy file hợp đồng trên cloud!');
+        }
+
+        // Gửi email
+        Mail::to($email)
+            ->send(new SendContractToCustomer($order, $tempFilePath, $file->name));
+
+        // Xóa file tạm
+        @unlink($tempFilePath);
+
+        //log gửi lại hợp đồng
+        $logService = app(OrderLogService::class);
+
+        $logService->createLog([
+            'order_id'   => $order->id,
+            'action'     => "Xuất hợp đồng",
+            'note'       => "Xuất hợp đồng cho đơn hàng: " . $order->order_code . ". Số hợp đồng: " . $order->contract_number,
+            'file_id'    => $order->contract_file_id,
+        ]);
+        return;
     }
 }

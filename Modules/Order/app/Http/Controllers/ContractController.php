@@ -160,4 +160,36 @@ class ContractController extends Controller
             return response()->json(['success' => false, 'message' => 'Error deleting file: ' . $e->getMessage()], 500);
         }
     }
+    public function sendContract(Request $request, $orderId)
+    {
+        $order = Order::findOrFail($orderId);
+        
+        if (!$order->contract_file_id) {
+            return response()->json(['success' => false, 'message' => 'Không tìm thấy file hợp đồng'], 404);
+        }
+
+        try {
+            // Gửi email với file hợp đồng
+            $contractService = app(ContractService::class);
+            $result = $contractService->sendContractEmail($order);
+
+            if ($result['success']) {
+                // Ghi log
+                $logService = app(OrderLogService::class);
+                $logService->createLog([
+                    'order_id'   => $orderId,
+                    'action'     => 'Gửi hợp đồng',
+                    'note'       => 'Đã gửi hợp đồng qua email: ' . $result['email'],
+                    'file_id'    => $order->contract_file_id,
+                    'user_id'    => auth()->id(),
+                    'user_name'  => auth()->user()?->name ?? null,
+                ]);
+                return response()->json(['success' => true, 'message' => 'Contract sent successfully']);
+            } else {
+                return response()->json(['success' => false, 'message' => $result['message']], 500);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error sending contract: ' . $e->getMessage()], 500);
+        }
+    }
 }
