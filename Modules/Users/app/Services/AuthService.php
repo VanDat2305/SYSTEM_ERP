@@ -132,33 +132,97 @@ class AuthService
     {
         $menu = [
             [
-                'title' => __('Dashboard'),
-                'icon' => 'mdi-view-dashboard',
-                'route' => 'dashboard',
-                'routeName' => 'dashboard',
+                'title'      => __('Dashboard'),
+                'icon'       => 'mdi-view-dashboard',
+                'route'      => 'dashboard',
+                'routeName'  => 'dashboard',
                 'permission' => 'dashboard.view',
-
             ],
             [
-                'title' => __('System'),
-                'icon' => 'mdi-system-group',
-                'isDefault' => true,
-                'children' => [
+                'title'      => __('System'),
+                'icon'       => 'mdi-system-group',
+                'children'   => [
                     [
-                        'title' => __('Users'),
-                        'route' => 'system/users',
-                        'routeName' => 'system.users',
+                        'title'      => __('Users'),
+                        'icon'       => 'mdi-account',
+                        'route'      => 'system/users',
+                        'routeName'  => 'system.users',
                         'permission' => 'users.view',
                     ],
                     [
-                        'title' => __('Roles'),
-                        'route' => 'system/roles',
-                        'routeName' => 'system.roles',
+                        'title'      => __('Roles'),
+                        'icon'       => 'mdi-account-key',
+                        'route'      => 'system/roles',
+                        'routeName'  => 'system.roles',
                         'permission' => 'roles.view',
+                    ],
+                    [
+                        'title'      => __('Teams'),
+                        'icon'       => 'mdi-account-multiple',
+                        'route'      => 'system/teams',
+                        'routeName'  => 'system.teams',
+                        'permission' => 'teams.view',
+                    ],
+                    [
+                        'title'      => __('Permissions'),
+                        'icon'       => 'mdi-shield-key',
+                        'route'      => 'system/permissions',
+                        'routeName'  => 'system.permissions',
+                        'permission' => 'permissions.view',
+                    ],
+                    [
+                        'title'      => __('Activity Logs'),
+                        'icon'       => 'mdi-format-list-bulleted',
+                        'route'      => 'system/logs',
+                        'routeName'  => 'system.logs',
+                        'permission' => 'logs.view',
                     ],
                 ],
             ],
+            [
+                'title'      => __('Customers'),
+                'icon'       => 'mdi-account-group',
+                'route'      => 'customers',
+                'routeName'  => 'customers.list',
+                'permission' => 'customers.view',
+            ],
+            [
+                'title'      => __('Orders'),
+                'icon'       => 'mdi-cart',
+                'route'      => 'orders',
+                'routeName'  => 'orders.list',
+                'permission' => 'orders.view',
+            ],
+            [
+                'title'      => __('Service Packages'),
+                'icon'       => 'mdi-package-variant',
+                'route'      => 'service-packages',
+                'routeName'  => 'service_packages.name',
+                'permission' => 'service_packages.view',
+            ],
+            [
+                'title'      => __('File Manager'),
+                'icon'       => 'mdi-file-document',
+                'route'      => 'filemanager',
+                'routeName'  => 'filemanager.name',
+                'permission' => 'files.list',
+            ],
+            [
+                'title'      => __('Account Panel'),
+                'icon'       => 'mdi-account-circle',
+                'route'      => 'settings/account',
+                'routeName'  => 'settings.account',
+                'permission' => 'account.panel',
+            ],
+            [
+                'title'      => __('Dynamic Lists'),
+                'icon'       => 'mdi-playlist-edit',
+                'route'      => 'settings/dynamic-lists',
+                'routeName'  => 'settings.dynamiclists',
+                'permission' => 'objects.view',
+            ],
         ];
+
         return $this->filterMenu($menu, $user);
     }
 
