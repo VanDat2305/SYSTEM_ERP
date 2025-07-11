@@ -4,6 +4,7 @@ namespace Modules\Users\Services;
 
 use Modules\Users\Interfaces\RoleRepositoryInterface;
 use Exception;
+use Modules\Users\Models\User;
 
 class RoleService
 {
@@ -112,8 +113,21 @@ class RoleService
             // Đồng bộ permissions nếu có trong data
             if (array_key_exists('permissions', $data)) {
                 $this->roleRepository->assignPermissions($role->id, $data['permissions'] ?? []);
+                            $allRolePermissions = $role->permissions()->pluck('name')->toArray();
+                // Tìm user thuộc role này
+                $users = User::role($role->name)->get();
+                foreach ($users as $user) {
+                    // Lấy danh sách quyền trực tiếp của user, chỉ gỡ các quyền mà đã bị loại khỏi role
+                    $userDirectPermissions = $user->getDirectPermissions()->pluck('name')->toArray();
+                    $permissionsToRemove = array_diff($userDirectPermissions, $allRolePermissions);
+                    if ($permissionsToRemove) {
+                        $user->revokePermissionTo($permissionsToRemove);
+                    }
+                }
             }
     
+            // XÓA CACHE QUYỀN
+            app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
             return $role;
         } catch (Exception $e) {
             throw new Exception(trans('users::messages.roles.failed_to_update', ['error' => $e->getMessage()]));
