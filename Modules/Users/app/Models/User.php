@@ -15,11 +15,13 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Modules\Users\Models\UserTwoFactorCode;
 // use Spatie\Activitylog\Traits\LogsActivity;
 // use Spatie\Activitylog\LogOptions;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, Notifiable, HasRoles;
+    use HasApiTokens, Notifiable, HasRoles, SoftDeletes;
     // use LogsActivity;
+    
     
     protected $guard_name = 'api';
     

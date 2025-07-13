@@ -515,7 +515,7 @@ class CustomerController extends Controller
         $orderDetails = OrderDetail::with('features')
             ->whereHas('order', function ($q) use ($customerId) {
                 $q->where('customer_id', $customerId)
-                    ->where('order_status', '!=', 'draft');
+                    ->whereNotIn('order_status', ['cancelled', 'draft']);
             })
             ->whereNotNull('start_date')
             ->whereNotNull('end_date')
@@ -537,7 +537,7 @@ class CustomerController extends Controller
     {
         // Tổng số đơn hàng đã tạo (đơn không draft)
         $totalOrders = Order::where('customer_id', $customerId)
-            ->whereNotIn('order_status', ['draft'])
+            ->whereNotIn('order_status', ['draft', 'cancelled'])
             ->count();
 
         // Lấy tất cả order_details đã mua
@@ -639,7 +639,7 @@ class CustomerController extends Controller
     {
         $status = $this->determinePackageStatus($detail, $renewedDetailIds);
         $feature = $detail->features->first();
-        $totalQuota = $feature ? ($feature->limit_value * $detail->quantity) : null;
+        $totalQuota = $feature && $feature->feature_key != "duration" ? ($feature->limit_value * $detail->quantity) : null;
         $used = $feature ? $feature->used_count : null;
         $remain = $feature ? ($totalQuota - $used) : null;
 

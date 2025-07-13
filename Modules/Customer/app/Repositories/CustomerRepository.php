@@ -45,7 +45,7 @@ class CustomerRepository implements CustomerRepositoryInterface
         if (!empty($filters['customer_type']) && strtolower($filters['customer_type']) !== 'all') {
             $query->where('customer_type', $filters['customer_type']);
         }
-        if (!empty($filters['status'])) {
+        if (!empty($filters['status']) && in_array(strtolower($filters['status']), ['expiring_soon', 'expired'])) {
             $now = now();
 
             if ($filters['status'] === 'expiring_soon') {

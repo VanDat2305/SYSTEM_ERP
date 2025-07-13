@@ -70,9 +70,11 @@ Route::prefix('v1')->group(function () {
 
 
     // Quota API
-    Route::prefix('quota')->group(function () {
+    Route::prefix('quota')->middleware('basic_auth')->group(function () {
         Route::get('check', [\Modules\Order\Http\Controllers\QuotaController::class, 'check']);
-        Route::post('use', [\Modules\Order\Http\Controllers\QuotaController::class, 'use']);
+        
         Route::post('warning', [\Modules\Order\Http\Controllers\QuotaController::class, 'warning']);
     });
+
+    Route::middleware('auth:account_api')->post('quota/use', [\Modules\Order\Http\Controllers\QuotaController::class, 'use']);
 });

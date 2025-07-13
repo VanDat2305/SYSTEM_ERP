@@ -572,8 +572,8 @@ class OrderService
             $headers = [];
             // Nếu có cấu hình token, thêm vào header
             if (!empty($meta->where('key', 'api_url')->pluck('value'))) {
-                // $headers['Authorization'] = 'Basic ' . $serviceCfg->api_token;
-                $headers['Authorization'] = 'Basic YXBpdXNlcjphcGlwYXNzd29yZA==';
+                $headers['Authorization'] = 'Basic ' . $serviceCfg->api_token;
+                // $headers['Authorization'] = 'Basic YXBpdXNlcjphcGlwYXNzd29yZA==';
             }
             // Chuẩn bị dữ liệu gửi đi
 
@@ -583,6 +583,7 @@ class OrderService
                 'name' => $customer->full_name,
                 'phone' => $primaryPhone,
                 'type' => $customer->customer_type,
+                'tax_code' => $customer->tax_code ?? null,
             ];
             // Gọi API để kiểm tra hoặc tạo tài khoản
             $response = Http::withHeaders($headers)

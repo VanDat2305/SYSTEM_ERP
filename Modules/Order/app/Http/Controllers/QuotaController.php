@@ -58,19 +58,31 @@ class QuotaController extends Controller
                 ->where('feature_key', $data['feature_key'])
                 ->firstOrFail();
 
-            $quantity = $feature->orderDetail->quantity ?? 1;
+            // Trường hợp feature là thời hạn sử dụng (duration)
+            if ($feature->feature_key === 'duration') {
+                // Kiểm tra hết hạn hay chưa
+                $now = Carbon::now();
+                if ($feature->detail->end_date && $now > $feature->detail->end_date) {
+                    abort(400, 'Gói đã hết hạn, không thể sử dụng.');
+                }
+                // Không tăng used_count và không trừ quota
+                return;
+            }
+
+            // Các feature còn lại kiểu 'quantity'
+            $quantity = $feature->detail->quantity ?? 1;
             $totalQuota = $feature->limit_value * $quantity;
 
             if ($feature->used_count + $data['amount'] > $totalQuota) {
-                abort(400, 'Quota exceeded!');
+                abort(400, 'Số lượng sử dụng vượt quá cho phép.');
             }
-
             $feature->used_count += $data['amount'];
             $feature->save();
         });
 
         return response()->json(['status' => 'ok']);
     }
+
 
     /**
      * API lấy danh sách gói sắp hết hạn/quota cho cảnh báo

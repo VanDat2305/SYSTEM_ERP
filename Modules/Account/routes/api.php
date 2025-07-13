@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Account\Http\Controllers\AccountController;
+use Modules\Account\Http\Controllers\AccountServiceController;
 
 /*
  *--------------------------------------------------------------------------
@@ -18,3 +19,5 @@ use Modules\Account\Http\Controllers\AccountController;
 //     Route::apiResource('account', AccountController::class)->names('account');
 // });
 Route::middleware('basic_auth')->post('/v1/account/check-or-create', [AccountController::class, 'checkOrCreate']);
+Route::post('/v1/account/login', [AccountController::class, 'login']);
+Route::middleware('auth:account_api')->get('/v1/account/services', [AccountServiceController::class, 'services']);

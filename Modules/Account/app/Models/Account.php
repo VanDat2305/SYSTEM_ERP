@@ -5,10 +5,10 @@ namespace Modules\Account\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 // use Modules\Account\Database\Factories\App/models/AccountFactory;
-
+use Laravel\Sanctum\HasApiTokens;
 class Account extends Model
 {
-    use HasFactory;
+    use HasFactory, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.

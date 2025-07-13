@@ -70,4 +70,31 @@ class AccountController extends Controller
             'note'        => $is_new ? 'Tài khoản mới đã được tạo và gửi mail mật khẩu tạm thời.' : 'Tài khoản đã tồn tại',
         ]);
     }
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string',
+        ]);
+
+        $account = \Modules\Account\Models\Account::where('email', $request->email)->first();
+
+        if (!$account || !Hash::check($request->password, $account->password)) {
+            return response()->json(['message' => 'Sai thông tin đăng nhập'], 401);
+        }
+
+        // Tạo token Sanctum cho account này
+        $token = $account->createToken('account_token')->plainTextToken;
+
+        return response()->json([
+            'token' => $token,
+            'account' => [
+                'id' => $account->id,
+                'name' => $account->name,
+                'email' => $account->email,
+                'tax_code' => $account->tax_code,
+            ]
+        ]);
+    }
+
 }
