@@ -24,7 +24,7 @@ class FileService
     {
         return $this->fileRepository->find($fileId);
     }
-    public function upload(UploadedFile $file, ?string $folderId = null): File
+    public function upload(UploadedFile $file, ?string $folderId = null, $objectId = null, $documentType = null): File
     {
         try {
             $folder = $folderId ? app(FolderRepositoryInterface::class)->find($folderId) : null;
@@ -44,7 +44,9 @@ class FileService
                 'size' => $file->getSize(),
                 'folder_id' => $folderId,
                 'category' => $this->detectCategory($file),
-                'user_id' => auth()->id()
+                'user_id' => auth()->id(),
+                'object_id'     => $objectId,
+                'document_type' => $documentType,
             ]);
             
         } catch (Exception $e) {
@@ -206,5 +208,47 @@ class FileService
             throw new Exception("Failed to upload file from content: " . $e->getMessage());
         }
     }
+    public function getFilesByObjectId(string $objectId): array
+    {
+        try {
+            return $this->fileRepository->getByObjectId($objectId)->toArray();
+        } catch (Exception $e) {
+            Log::error("Failed to get files by object ID: " . $e->getMessage());
+            throw new Exception("Failed to get files by object ID: " . $e->getMessage());
+        }
+    }
+    public function updateFile(string $fileId, array $data): File
+    {
+        try {
+            $file = $this->fileRepository->find($fileId);
+            if (!$file) {
+                throw new Exception("File not found");
+            }
 
+            // Cập nhật các trường cần thiết
+            $file->fill($data);
+            $file->save();
+
+            return $file;
+        } catch (Exception $e) {
+            Log::error("Failed to update file: " . $e->getMessage());
+            throw new Exception("Failed to update file: " . $e->getMessage());
+        }
+    }
+    public function syncCustomerFiles( string $customerId, array $fileIds): void
+    {
+        try {
+            // Thêm các file mới
+            foreach ($fileIds as $fileId) {
+                $file = $this->fileRepository->find($fileId['id']);
+                if ($file) {
+                    $file->object_id = $customerId;
+                    $file->save();
+                }
+            }
+        } catch (Exception $e) {
+            Log::error("Failed to sync customer files: " . $e->getMessage());
+            throw new Exception("Failed to sync customer files: " . $e->getMessage());
+        }
+    }
 }

@@ -12,6 +12,7 @@ use Modules\Customer\Services\CustomerService;
 use Illuminate\Support\Facades\DB;
 use Modules\Order\Models\Order;
 use Modules\Order\Models\OrderDetail;
+use Modules\FileManager\Services\FileService;
 
 class CustomerController extends Controller
 {
@@ -655,5 +656,37 @@ class CustomerController extends Controller
             'end_date'     => $detail->end_date,
             'status'       => $status,
         ];
+    }
+    public function uploadFile(Request $request)
+    {
+        $request->validate([
+            'file'          => 'required|file|max:10240', // 10MB
+            'document_type' => 'required|string|max:50',
+        ], [], [
+            'file'          => 'Tệp đính kèm',
+            'document_type' => 'Loại giấy tờ',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $fileService = app(FileService::class);
+            // upload(file, object_id, document_type)
+            $file = $fileService->upload($request->file('file'),null, $request->input('object_id'), $request->input('document_type'));
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id'            => $file->id,
+                    'name'          => $file->name,
+                    'original_name' => $file->original_name,
+                    'url'           => $file->url,
+                    'document_type' => $file->document_type,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 }

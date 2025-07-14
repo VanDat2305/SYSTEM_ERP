@@ -52,4 +52,8 @@ class FileRepository implements FileRepositoryInterface
         }
         return $uploadedFiles;
     }
+    public function getByObjectId(string $objectId): Collection
+    {
+        return File::where('object_id', $objectId)->get();
+    }
 }

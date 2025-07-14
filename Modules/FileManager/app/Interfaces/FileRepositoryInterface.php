@@ -13,4 +13,5 @@ interface FileRepositoryInterface
     public function getByFolderId(?string $folderId = null): Collection;
     public function getRecentFiles(int $limit = 5): Collection;
     public function uploadMultiple(array $files, ?string $folderId = null): array;
+    public function getByObjectId(string $objectId): Collection;
 }

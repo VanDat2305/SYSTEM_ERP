@@ -40,13 +40,22 @@ class FileController extends Controller
     public function store(FileUploadRequest $request)
     {
         try {
-            $file = $this->fileService->uploadMultiple(
-                $request->file('files'),
-                $request->input('folder_id')
+            $files = $request->file('files');
+            $metadatas = $request->input('metadatas', []);
+
+            // Chuyển $metadatas thành array đã decode:
+            $metadataArray = array_map(function ($item) {
+                return json_decode($item, true) ?? [];
+            }, $metadatas);
+
+            $fileRecords = $this->fileService->uploadMultiple(
+                $files,
+                $request->input('folder_id'),
+                $metadataArray
             );
 
             return response()->json([
-                'data' => $file,
+                'data' => $fileRecords,
                 'message' => __("filemanager::messages.file.uploaded_success")
             ], Response::HTTP_CREATED);
         } catch (\Exception $e) {
@@ -55,6 +64,7 @@ class FileController extends Controller
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
 
     public function destroy(FileDeleteRequest $request, string $id)
     {
@@ -143,5 +153,33 @@ class FileController extends Controller
             'success' => true,
             'base64_pdf' => $base64
         ]);
+    }
+    public function getlistFileByObjectId(Request $request, string $objectId)
+    {
+        try {
+            $files = $this->fileService->getFilesByObjectId($objectId);
+            return response()->json([
+                'data' => $files,
+                'message' => "Thành công lấy danh sách file"
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+    public function update (Request $request, string $id)
+    {
+        try {
+            $file = $this->fileService->updateFile($id, $request->all());
+            return response()->json([
+                'data' => $file,
+                'message' => __("filemanager::messages.file.updated_success")
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }

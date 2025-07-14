@@ -12,6 +12,7 @@ use Modules\Customer\Models\Customer;
 use Modules\Customer\Interfaces\CustomerRepositoryInterface;
 use Modules\Customer\Services\CustomerContactService;
 use Modules\Customer\Services\CustomerRepresentativeService;
+use Modules\FileManager\Services\FileService;
 
 class CustomerService
 {
@@ -99,6 +100,10 @@ class CustomerService
                 }
             }
             //logs customer
+
+            // update files 
+            $fileService = app(FileService::class);
+            $fileService->syncCustomerFiles($customer->id, $data['files'] ?? []);
 
             $this->customerLogService->createLog([
                 'object_id' => $customer->id,

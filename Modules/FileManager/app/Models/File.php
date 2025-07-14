@@ -17,7 +17,7 @@ class File extends Model
     protected $fillable = [
         'name', 'original_name', 'path', 'url', 'mime_type', 
         'size', 'disk', 'folder_id', 'user_id', 'category',
-        'description', 'metadata'
+        'description', 'metadata', 'document_type', 'object_id'
     ];
 
     public function folder()

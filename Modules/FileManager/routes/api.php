@@ -27,9 +27,11 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\CustomSanctumAuth::class
         Route::get('/', [FileController::class, 'index']);
         Route::post('/', [FileController::class, 'store']);
         Route::delete('/{id}', [FileController::class, 'destroy']);
+        Route::put('{id}', [FileController::class, 'update']); 
     });
 });
 
 Route::prefix('v1')->get('/file/{id}', [FileController::class, 'serve']);
 Route::prefix('v1')->get('/convert-to-pdf-base64/{file_id}', [FileController::class, 'convertToPdfBase64']);
+Route::prefix('v1')->get('/getListByObjectId/{object_id}', [FileController::class, 'getlistFileByObjectId']);
 

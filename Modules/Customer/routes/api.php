@@ -52,6 +52,7 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
         Route::get('/{customerId}/packages/list', [CustomerController::class, 'customerPackagesList']);
         Route::get('/{customerId}/packages/summary', [CustomerController::class, 'customerPackagesSummary']);
 
+        Route::post('/files', [CustomerController::class, 'uploadFile']);
 
     });
 });

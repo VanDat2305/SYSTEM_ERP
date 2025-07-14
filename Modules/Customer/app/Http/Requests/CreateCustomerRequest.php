@@ -48,6 +48,8 @@ class CreateCustomerRequest extends FormRequest
             'representatives.*.identity_type' => ['nullable'], //, Rule::in(['CCCD', 'CMND', 'PP'])
             'representatives.*.identity_number' => 'nullable|string|max:50',
             'representatives.*.note' => 'nullable|string|max:100',
+
+            'files' => 'nullable|array',
         ];
     }
 
