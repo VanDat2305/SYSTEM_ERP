@@ -39,8 +39,13 @@ class ContractService
             $templateProcessor->setValue('customer_code', $order->customer->customer_code ?? ''); // Mã khách hàng
             $templateProcessor->setValue('address', $order->customer->address ?? ''); // Địa chỉ khách hàng
             // lấy representative từ customer bảng req nếu có, nếu không thì để trống
-            $templateProcessor->setValue('customer_representative_full_name', $order->customer->representatives->first()->full_name ?? ''); // Người đại diện
-            $templateProcessor->setValue('customer_representative_position', $order->customer->representatives->first()->position ?? ''); // chuc vu
+            if ($order->customer->customer_type == 'INDIVIDUAL') {
+                $templateProcessor->setValue('customer_representative_full_name', $order->customer->full_name ?? ''); // Người đại diện
+                $templateProcessor->setValue('customer_representative_position', 'Đại diện'); // chuc vu
+            } else {
+                $templateProcessor->setValue('customer_representative_full_name', $order->customer->representatives->first()->full_name ?? ''); // Người đại diện
+                $templateProcessor->setValue('customer_representative_position', $order->customer->representatives->first()->position ?? ''); // chuc vu
+            }
             $templateProcessor->setValue('tax_number', $order->customer->tax_code ?? '');
             $templateProcessor->setValue('total_amount', number_format($order->total_amount, 0, ',', '.')); // Tổng tiền hợp đồng
             $templateProcessor->setValue('currency', $order->currency ?? ''); // Đơn vị tiền tệ
