@@ -11,7 +11,7 @@ class UserRepository implements UserRepositoryInterface
 {
     public function getAll()
     {
-        return User::with('roles')->paginate(20);
+        return User::with('roles')->get();  
     }
 
     public function findById($id)

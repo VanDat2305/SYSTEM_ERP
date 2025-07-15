@@ -36,6 +36,22 @@ class OrderRepository implements OrderRepositoryInterface
             'customer.contacts', 'details.features', 'team', 'creator:id,name',
         ]);
 
+        $user = auth()->user();
+        // Kiểm tra quyền của người dùng
+        if ($user->can('customers.view')) {
+            // Admin có thể xem tất cả khách hàng
+        } elseif ($user->can('customers.view.team')) {
+            // Teamlead hoặc member có thể xem khách hàng trong nhóm của họ
+            $teamIds = $user->teams()->pluck('id'); // Lấy tất cả các nhóm mà người dùng tham gia
+            $query->whereIn('team_id', $teamIds);
+        } elseif ($user->can('customers.view.own')) {
+            // Người dùng chỉ có thể xem khách hàng mà họ đã tạo
+            $query->where('created_by', $user->id);
+        } else {
+            // Nếu người dùng không có quyền, trả về lỗi
+            throw new \Exception(__('customer::messages.forbidden_access'));
+        }
+
         // Tìm kiếm theo order_code, customer_id, hoặc lọc theo trường cụ thể
         if (!empty($filters['order_code'])) {
             $query->where('order_code', 'like', "%{$filters['order_code']}%");
