@@ -514,7 +514,7 @@ class OrderService
         if (!$contactInfo) {
              app(OrderLogService::class)->createLog([
                 'order_id' => $orderId,
-                'action' => "Kích hoạt dịch vụ",
+                'action' => "Lỗi kích hoạt",
                 'note' => "Không tìm thấy thông tin liên hệ của khách hàng",
                 'file_id' => null,
                 'user_name' => 'Hệ thống',
@@ -527,7 +527,7 @@ class OrderService
         if (!$primaryEmail) {
             app(OrderLogService::class)->createLog([
                 'order_id' => $orderId,
-                'action' => "Kích hoạt dịch vụ",
+                'action' => "Lỗi kích hoạt",
                 'note' => "Khách hàng không có email liên hệ chính.",
                 'file_id' => null,
                 'user_name' => 'Hệ thống',
@@ -552,10 +552,10 @@ class OrderService
             $serviceCfg = $listServiceType->where('code', $serviceType)->first();
             // Lấy cấu hình API dịch vụ con
             if (!$serviceCfg) continue; // Bỏ qua dịch vụ chưa cấu hình
-
             // Chuẩn bị gọi API check/tạo tài khoản
             $meta = $serviceCfg->meta;
-            $apiUrl = $meta->where('key', 'api_url')->pluck('value') ?? '';
+            $apiUrl = collect($meta)->where('key', 'api_url')->first()['value'] ?? null;
+            $apiToken = collect($meta)->where('key', 'api_token')->first()['value'] ?? null;
             if (empty($apiUrl)) {
                 // throw new \Exception("Dịch vụ $serviceType chưa cấu hình API URL!");
                 app(OrderLogService::class)->createLog([
@@ -568,11 +568,11 @@ class OrderService
                 continue; // Bỏ qua dịch vụ chưa cấu hình
             }
 
-            $apiUrl = "https://api.datmv-solutions-erp.me/v1/account/check-or-create";
+            // $apiUrl = "https://api.datmv-solutions-erp.me/v1/account/check-or-create";
             $headers = [];
             // Nếu có cấu hình token, thêm vào header
-            if (!empty($meta->where('key', 'api_url')->pluck('value'))) {
-                $headers['Authorization'] = 'Basic ' . $serviceCfg->api_token;
+            if (!empty($apiToken)) {
+                $headers['Authorization'] = 'Basic ' . $apiToken;
                 // $headers['Authorization'] = 'Basic YXBpdXNlcjphcGlwYXNzd29yZA==';
             }
             // Chuẩn bị dữ liệu gửi đi

@@ -82,7 +82,7 @@ class InvoiceService
             ->where('is_primary', 1)
             ->first();
 
-        $email = $emailContact ? $emailContact->contact : null;
+        $email = $emailContact ? $emailContact->value : null;
 
         // Nếu không có, lấy email của representative đầu tiên (nếu có)
         if (!$email && ($order->customer->representatives->count() > 0)) {
