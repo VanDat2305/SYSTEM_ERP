@@ -221,6 +221,9 @@ public function exportAndSaveContractPdf(Order $order, $folderId = null)
             'note'       => "Xuất hợp đồng cho đơn hàng: " . $order->order_code . ". Số hợp đồng: " . $order->contract_number,
             'file_id'    => $order->contract_file_id,
         ]);
-        return;
+        return [
+            'success' => true,
+            'email' => $email,
+        ];
     }
 }
