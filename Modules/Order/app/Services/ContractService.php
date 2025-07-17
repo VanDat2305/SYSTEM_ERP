@@ -31,6 +31,11 @@ class ContractService
 
             // 3. Merge dữ liệu vào file mẫu Word
             $templateProcessor = new TemplateProcessor($templatePath);
+
+            $orderCode = $order->order_code;
+            $link = "https://datmv-solutions-erp.me/payment?order_code=$orderCode";
+
+            $templateProcessor->setValue('url_payment', "$link"); // Link thanh toán
             $templateProcessor->setValue('contract_number', $order->contract_number);
             $templateProcessor->setValue('order_code', $order->order_code);
             $templateProcessor->setValue('to_day', now()->format('d/m/Y'));
