@@ -74,15 +74,37 @@ class DashboardController extends Controller
 
     /**
      * Apply team filter to query builder
-     */
+     */  
     private function applyTeamFilter($query, $teamColumn = 'team_id')
     {
+        $user = Auth::user();
         $teamIds = $this->getAccessibleTeamIds();
-
-        if ($teamIds !== null) {
-            $query->whereIn($teamColumn, $teamIds);
+        if ($teamIds === null) {
+             return $query;
         }
+        if ($teamIds !== null && $teamIds !== []) {
+            $query->whereIn($teamColumn, $teamIds);
+            
+        }
+        if ($teamIds === []) {
+            if ($teamColumn == 'orders.team_id') {
+                return $query->where('orders.created_by', $user->id);
+            }
+            $modelTable = $query->getModel()->getTable();
 
+            $fallbackColumns = [
+                'orders' => 'created_by',
+                'customers' => 'assigned_to',
+            ];
+
+            $userColumn = $fallbackColumns[$modelTable] ?? null;
+            if ($userColumn) {
+                return $query->where($userColumn, $user->id);
+            }
+
+            // Nếu không xác định được bảng → mặc định không cho thấy gì
+            return $query->whereRaw('1 = 0');
+        }
         return $query;
     }
 
@@ -450,7 +472,6 @@ class DashboardController extends Controller
             $this->applyTeamFilter($query);
             $orderStatus[] = $query->count();
         }
-
         // Payment Status Analysis
         $paymentStatusQueries = [
             'paid' => Order::where('payment_status', self::PAYMENT_STATUS['PAID']),
